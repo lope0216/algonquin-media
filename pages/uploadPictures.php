@@ -25,6 +25,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = htmlspecialchars($_POST['title'] ?? 'Untitled');
     $description = htmlspecialchars($_POST['description'] ?? '');
 
+    // Fetch AlbumName from the database based on Album_Id
+    $albumName = '';
+    try {
+        $stmt = $pdo->prepare("SELECT Title as AlbumName FROM cst8257project.album WHERE Album_Id = :albumId");
+        $stmt->bindParam(':albumId', $album);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $albumName = $result['AlbumName'] ?? 'Unknown Album'; // Default if no title found
+    } catch (Exception $e) {
+        $uploadErrors[] = "Failed to retrieve album name: " . $e->getMessage();
+    }
+
     // Directory to store uploaded files
     $uploadDir = 'uploads/' . $album . '/';
     if (!is_dir($uploadDir)) {
@@ -61,10 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Set success message if files were uploaded successfully
     if (count($uploadedFiles) > 0) {
-        $successMessage = "Successfully uploaded " . count($uploadedFiles) . " file(s) to the album '$album'.";
+        $successMessage = "Successfully uploaded " . count($uploadedFiles) . " file(s) to the album '$albumName'.";
     }
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -138,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <!-- Submit and Clear Buttons -->
-                <div>
+                <div class="d-flex justify-content-between">
                     <button type="submit" class="btn btn-primary">Submit</button>
                     <button type="reset" class="btn btn-secondary">Clear</button>
                 </div>
