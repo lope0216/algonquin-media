@@ -5,7 +5,7 @@ function getPDOConnection() {
 
     if ($pdo === null) {
         try {
-            $dbConfig = parse_ini_file("config/db.ini");
+            $dbConfig = parse_ini_file("../config/db.ini");
             $dsn = $dbConfig['dsn'];
             $user = $dbConfig['user'];
             $password = $dbConfig['password'];
