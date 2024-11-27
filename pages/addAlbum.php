@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-light">
     <?php include("../common/header.php"); ?>
 
-    <div class="container m-5">
+    <div class="container mt-5 mb-5">
         <div class="card shadow-sm">
             <div class="card-body">
                 <h1 class="card-title text-center mb-4">Create a New Album</h1>
