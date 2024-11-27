@@ -1,17 +1,47 @@
 <?php
+require_once '../db/DBconnection.php'; // Correct path to DBconnection.php
+
+// Fetch albums from database
+$pdo = getPDOConnection();
+$albums = [];
+try {
+    $userid = 'U0001'; // Replace with actual UserId
+    $stmt = $pdo->prepare("SELECT Album_Id as AlbumId, Title as AlbumName FROM cst8257project.album WHERE Owner_Id = :userId");
+    $stmt->bindParam(':userId', $userid);
+    $stmt->execute();
+    $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    echo "Error fetching albums: " . $e->getMessage();
+}
+
+// Initialize variables
+$uploadedFiles = [];
+$uploadErrors = [];
+$successMessage = '';
+
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $album = htmlspecialchars($_POST['album'] ?? '');
     $title = htmlspecialchars($_POST['title'] ?? 'Untitled');
     $description = htmlspecialchars($_POST['description'] ?? '');
+
+    // Fetch AlbumName from the database based on Album_Id
+    $albumName = '';
+    try {
+        $stmt = $pdo->prepare("SELECT Title as AlbumName FROM cst8257project.album WHERE Album_Id = :albumId");
+        $stmt->bindParam(':albumId', $album);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $albumName = $result['AlbumName'] ?? 'Unknown Album'; // Default if no title found
+    } catch (Exception $e) {
+        $uploadErrors[] = "Failed to retrieve album name: " . $e->getMessage();
+    }
 
     // Directory to store uploaded files
     $uploadDir = 'uploads/' . $album . '/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
     }
-
-    $uploadedFiles = [];
-    $uploadErrors = [];
 
     // Process each uploaded file
     if (!empty($_FILES['files']['name'][0])) {
@@ -20,7 +50,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $filePath = $uploadDir . $fileName;
 
             if (move_uploaded_file($tmpName, $filePath)) {
-                $uploadedFiles[] = $fileName;
+                // Save file metadata to database
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO cst8257project.picture (Album_Id, File_Name, Title, Description) VALUES (:albumId, :fileName, :title, :description)");
+                    $stmt->execute([
+                        ':albumId' => $album,
+                        ':fileName' => $fileName,
+                        ':title' => $title,
+                        ':description' => $description
+                    ]);
+                    $uploadedFiles[] = $fileName;
+                } catch (Exception $e) {
+                    $uploadErrors[] = "Failed to save file metadata: $fileName (" . $e->getMessage() . ")";
+                }
             } else {
                 $uploadErrors[] = "Failed to upload file: $fileName";
             }
@@ -29,13 +71,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uploadErrors[] = "No files selected for upload.";
     }
 
-    // Redirect if at least one file was uploaded successfully
+    // Set success message if files were uploaded successfully
     if (count($uploadedFiles) > 0) {
-        header("Location: myPictures.php?album=" . urlencode($album));
-        exit();
+        $successMessage = "Successfully uploaded " . count($uploadedFiles) . " file(s) to the album '$albumName'.";
     }
 }
 ?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -55,6 +99,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <h1 class="text-center text-primary mb-2">Upload Pictures</h1>
 
+        <!-- Display Success Message -->
+        <?php if (!empty($successMessage)): ?>
+            <div class="alert alert-success">
+                <?= htmlspecialchars($successMessage) ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Display Error Messages -->
+        <?php if (!empty($uploadErrors)): ?>
+            <div class="alert alert-danger">
+                <ul>
+                    <?php foreach ($uploadErrors as $error): ?>
+                        <li><?= htmlspecialchars($error) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
         <!-- Form for uploading pictures -->
         <div class="form-container mx-auto p-4 border shadow-sm rounded" style="max-width: 500px; background-color: white;">
             <form action="" method="POST" enctype="multipart/form-data">
@@ -62,7 +124,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="mb-3">
                     <label for="album" class="form-label fw-bold">Upload to Album:</label>
                     <select id="album" name="album" class="form-select" required>
-                      
+                        <option value="">Select an album</option>
+                        <?php foreach ($albums as $album): ?>
+                            <option value="<?= htmlspecialchars($album['AlbumId']) ?>">
+                                <?= htmlspecialchars($album['AlbumName']) ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
