@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors["password"] = "Password must be at least 6 characters long, contain one uppercase letter, one lowercase letter, and one digit.";
     }
 
-    // Validate Confirm Password
+    // Validate Confirm Password if not match
     if ($password !== $confirmPassword) {
         $errors["confirmPassword"] = "Passwords do not match.";
     }
