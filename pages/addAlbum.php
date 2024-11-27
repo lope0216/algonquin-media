@@ -15,10 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $message = $albumModel->createAlbum($title, $accessibility, $description, 0001, "U0001");
 }
 
-
-
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -34,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-light">
     <?php include("../common/header.php"); ?>
 
-    <div class="container mt-5">
+    <div class="container m-5">
         <div class="card shadow-sm">
             <div class="card-body">
                 <h1 class="card-title text-center mb-4">Create a New Album</h1>
