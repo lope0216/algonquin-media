@@ -1,8 +1,8 @@
 <?php
 include_once('../db/DBconnection.php');
-$studentId = $name = $phone = $password = $confirmPassword = "";
+$UserId = $name = $phone = $password = $confirmPassword = "";
 $errors = [
-    "studentId" => "",
+    "UserId" => "",
     "name" => "",
     "phone" => "",
     "password" => "",
@@ -10,46 +10,58 @@ $errors = [
 ];
 $conn = getPDOConnection();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $studentId = trim($_POST["studentId"]);
+    // Trim and sanitize inputs
+    $UserId = trim($_POST["UserId"]);
     $name = trim($_POST["name"]);
     $phone = trim($_POST["phone"]);
     $password = trim($_POST["password"]);
     $confirmPassword = trim($_POST["confirmPassword"]);
-    if (!array_filter($errors)) {
-        insertStudent($studentId, $name, $phone, $password, $conn);
-        echo "<p class='alert alert-success mt-4'>Registration successful! You can now <a href='Login.php' class='alert-link'>log in</a>.</p>";
-    }
-}
-function checkStudentIdExists($studentId, $conn) {
-    $stmt = $conn->prepare("SELECT 1 FROM Student WHERE StudentId = ? LIMIT 1");
-    $stmt->bind_param("s", $studentId);
-    $stmt->execute();
-    $stmt->store_result(); 
-    if ($stmt->num_rows > 0) {
-        $stmt->close();
-        return true; 
-    } else {
-        $stmt->close();
-        return false; 
-    }
-}
-function insertStudent($studentId, $name, $phone, $password, $conn) {
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-    $stmt = $conn->prepare("INSERT INTO User (UserId, Name, Phone, Password) VALUES (?, ?, ?, ?)");
-    $stmt->bindParam(1, $studentId);
-    $stmt->bindParam(2, $name);
-    $stmt->bindParam(3, $phone);
-    $stmt->bindParam(4, $hashedPassword);
 
-    if ($stmt->execute()) {
-        echo "<p class='alert alert-success mt-4'>Registration successful! You can now <a href='Login.php'>log in</a>.</p>";
-        return true;
-    } else {
-        echo "<p class='alert alert-danger mt-4'>Error: " . $stmt->errorInfo()[2] . "</p>";
+    // Validate Student ID
+    if (empty($UserId)) {
+        $errors["UserId"] = "User ID cannot be blank.";
+    } elseif (checkUserIdExists($UserId, $conn)) {
+        $errors["UserId"] = "This user ID already exists.";
+    }
+
+    // Validate Name
+    if (empty($name)) {
+        $errors["name"] = "Name cannot be blank.";
+    }
+
+    // Validate Phone
+    if (!preg_match("/^\d{3}-\d{3}-\d{4}$/", $phone)) {
+        $errors["phone"] = "Phone number must be in the format nnn-nnn-nnnn.";
+    }
+
+    // Validate Password
+    if (strlen($password) < 6 || !preg_match("/[A-Z]/", $password) || !preg_match("/[a-z]/", $password) || !preg_match("/\d/", $password)) {
+        $errors["password"] = "Password must be at least 6 characters long, contain one uppercase letter, one lowercase letter, and one digit.";
+    }
+
+    // Validate Confirm Password
+    if ($password !== $confirmPassword) {
+        $errors["confirmPassword"] = "Passwords do not match.";
+    }
+}
+
+function checkUserIdExists($userId, $conn) {
+    $stmt = $conn->prepare("SELECT 1 FROM User WHERE UserId = ? LIMIT 1");
+    $stmt->execute([$userId]);
+    return $stmt->fetch() ? true : false;
+}
+
+function insertUser($UserId, $name, $phone, $password, $conn) {
+    try {
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("INSERT INTO User (UserId, Name, Phone, Password) VALUES (?, ?, ?, ?)");
+        return $stmt->execute([$UserId, $name, $phone, $hashedPassword]);
+    } catch (PDOException $e) {
+        error_log("Error inserting User: " . $e->getMessage());
         return false;
     }
-    $stmt->close();
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -69,9 +81,9 @@ function insertStudent($studentId, $name, $phone, $password, $conn) {
                     <h2 class="card-title text-center mb-4">Sign Up</h2>
                     <form method="post" action="NewUser.php">
                         <div class="mb-3">
-                            <label for="studentId" class="form-label">Student ID:</label>
-                            <input type="text" class="form-control" id="studentId" name="studentId" value="<?php echo htmlspecialchars($studentId); ?>">
-                            <div class="text-danger"><?php echo $errors["studentId"]; ?></div>
+                            <label for="UserId" class="form-label">User ID:</label>
+                            <input type="text" class="form-control" id="UserId" name="UserId" value="<?php echo htmlspecialchars($UserId); ?>">
+                            <div class="text-danger"><?php echo $errors["UserId"]; ?></div>
                         </div>
                         <div class="mb-3">
                             <label for="name" class="form-label">Name:</label>
