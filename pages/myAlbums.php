@@ -11,7 +11,7 @@ session_start();
 
 $albumModel = new AlbumModel();
 $pictureModel = new PictureModel();
-$user = ['name' => 'Gio']; //$_SESSION['student'];
+$user = $_SESSION['UserName'];
 $accessibilityModes = $albumModel->getAccessibilityModes();
 
 if (isFromSubmit()) {
@@ -58,7 +58,7 @@ function isFromSubmit() {
   <main class="container">
 
     <h1 class="text-primary text-center my-3">My Albums</h1>
-    <p>Welcome <b><?= $user['name'] ?></b>! (not you? change user <a href="/pages/logout.php">here</a>)</p>
+    <p>Welcome <b><?= $user ?></b>! (not you? change user <a href="/pages/logout.php">here</a>)</p>
     <a href="addAlbum.php" class="btn btn-primary mb-3">Create a new album</a>
 
     <form action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
