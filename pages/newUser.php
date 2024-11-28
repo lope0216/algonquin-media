@@ -89,6 +89,7 @@ function insertUser($UserId, $name, $phone, $password, $conn) {
             <div class="card">
                 <div class="card-body">
                     <h2 class="card-title text-center mb-4">Sign Up</h2>
+                    <p>All fields are required</p>
                     <form method="post" action="NewUser.php">
                         <div class="mb-3">
                             <label for="UserId" class="form-label">User ID:</label>
