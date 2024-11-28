@@ -17,6 +17,7 @@ $isLoggedIn = $_SESSION['loggedIn'] ?? false;
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         <a class="nav-link" href="./Index.php">Home</a>
+        <a class="nav-link" href="./myFriends.php">My Friends</a>
         <a class="nav-link" href="./myAlbums.php">My Albums</a>
         <a class="nav-link" href="./myPictures.php">My Pictures</a>
         <a class="nav-link" href="./uploadPictures.php">Upload Pictures</a>
