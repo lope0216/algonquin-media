@@ -10,14 +10,11 @@ $errors = [
 ];
 $conn = getPDOConnection();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Trim and sanitize inputs
     $UserId = trim($_POST["UserId"]);
     $name = trim($_POST["name"]);
     $phone = trim($_POST["phone"]);
     $password = trim($_POST["password"]);
     $confirmPassword = trim($_POST["confirmPassword"]);
-
-    // Validate Student ID
     if (empty($UserId)) {
         $errors["UserId"] = "User ID cannot be blank.";
     } elseif (checkUserIdExists($UserId, $conn)) {
@@ -43,7 +40,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($password !== $confirmPassword) {
         $errors["confirmPassword"] = "Passwords do not match.";
     }
+
+    // Check if there are no errors before inserting into the database
+    if (array_filter($errors) === []) { // If no errors exist in the array
+        $insertSuccess = insertUser($UserId, $name, $phone, $password, $conn);
+
+        if ($insertSuccess) {
+            // Redirect or show a success message
+            header("Location: login.php"); // Redirect to a success page
+            exit;
+        } else {
+            echo "<div class='text-danger'>An error occurred while saving your data. Please try again later.</div>";
+        }
+    }
 }
+
 
 function checkUserIdExists($userId, $conn) {
     $stmt = $conn->prepare("SELECT 1 FROM User WHERE UserId = ? LIMIT 1");
@@ -61,7 +72,6 @@ function insertUser($UserId, $name, $phone, $password, $conn) {
         return false;
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">

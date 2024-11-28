@@ -1,0 +1,23 @@
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+main {
+    flex: 1;
+}
+footer {
+    background-color: #f8f9fa;
+    padding: 10px 0
+}
+#password:hover {
+    border-color: green; 
+    background-color: whitesmoke; 
+    box-shadow: 10px;
+}
+#UserId:hover {
+    border-color: green; 
+    background-color: whitesmoke; 
+    box-shadow: 10px;
+}
+
