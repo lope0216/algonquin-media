@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $User = $sql->fetch(PDO::FETCH_ASSOC);
     if ($User) {
         if (password_verify($userPassword, $User['Password'])) {
-            $_SESSION['UserId'] = $User['StudentId'];
+            $_SESSION['UserId'] = $User['UserId'];
             $_SESSION['UserName'] = $User['Name'];
             header("Location: addAlbum.php");
             exit();
