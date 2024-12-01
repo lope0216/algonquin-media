@@ -1,10 +1,18 @@
 <?php
-session_start();
+
+include_once __DIR__ . '/../common/utils.php';
+
+startSession();
+
+if (!isLoggedIn()) {
+  unauthorizedAccess();
+}
 
 require_once("../model/album.php");
 
 $albumModel = new AlbumModel();
 $accessibilityOptions = $albumModel->getAlbumAccesibillityOptions();
+$user = $_SESSION['UserName'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $title = $_POST['title'] ?? '';
@@ -36,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="card shadow-sm">
             <div class="card-body">
                 <h1 class="card-title text-center mb-4">Create a New Album</h1>
-                <p class="text-center">Welcome user! (Not you? Change user <a href="login.php" class="text-decoration-none">here</a>)</p>
+                <p class="lead text-center">Welcome <b><?= $user ?></b>! (Not you? Change user <a href="logout.php" class="text-decoration-none">here</a>)</p>
 
                 <?php if (isset($message)): ?>
                     <div class="alert <?= strpos($message, 'success') !== false ? 'alert-success' : 'alert-danger' ?>" role="alert">

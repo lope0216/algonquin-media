@@ -1,5 +1,12 @@
 <?php
 require_once '../db/DBconnection.php'; // Correct path to DBconnection.php
+include_once __DIR__ . '/../common/utils.php';
+
+startSession();
+
+if (!isLoggedIn()) {
+  unauthorizedAccess();
+}
 
 // Fetch albums from database
 $pdo = getPDOConnection();

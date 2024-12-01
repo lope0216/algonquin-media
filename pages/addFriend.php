@@ -1,7 +1,14 @@
 <?php
-session_start();
 include_once('../db/DBconnection.php');
+include_once __DIR__ . '/../common/utils.php';
 
+startSession();
+
+if (!isLoggedIn()) {
+  unauthorizedAccess();
+}
+
+$user = $_SESSION['UserName'];
 $conn = getPDOConnection(); // Ensure this function sets up the database connection
 
 if (isset($_SESSION['UserId'])) {
@@ -73,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="container my-5">
         <h1 class="mb-4">Add Friend</h1>
-        <p class="lead mb-4">Welcome, <?php echo htmlspecialchars($current_user_id); ?>! (Not you? <a href="logout.php">Change user</a>)</p>
+        <p class="lead mb-4">Welcome, <b><?php echo htmlspecialchars($user); ?></b>! (Not you? <a href="logout.php">Change user</a>)</p>
 
         <form method="POST" action="" class="mb-4">
             <div class="mb-3">

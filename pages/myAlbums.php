@@ -59,7 +59,7 @@ function isFromSubmit() {
   <main class="container">
 
     <h1 class="text-primary text-center my-3">My Albums</h1>
-    <p>Welcome <b><?= $user ?></b>! (not you? change user <a href="/pages/logout.php">here</a>)</p>
+    <p class="lead">Welcome <b><?= $user ?></b>! (not you? change user <a href="/pages/logout.php">here</a>)</p>
     <a href="addAlbum.php" class="btn btn-primary mb-3">Create a new album</a>
 
     <form action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">

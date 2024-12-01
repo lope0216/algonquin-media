@@ -1,6 +1,13 @@
 <?php
-session_start();
 require_once '../db/DBconnection.php'; // Include database connection
+
+include_once __DIR__ . '/../common/utils.php';
+
+startSession();
+
+if (!isLoggedIn()) {
+  unauthorizedAccess();
+}
 
 $conn = getPDOConnection(); // Assuming this function returns a PDO instance
 
@@ -112,8 +119,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <title>My Friends</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/myFriends.css' ?>">
+    <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/global.css' ?>">
 </head>
-<body>
+<body class="body-layout">
 
 <?php include("../common/header.php"); ?>
 <div class="container mt-4">
