@@ -1,5 +1,14 @@
 <?php
 include_once('../db/DBconnection.php');
+
+include_once __DIR__ . '/../common/utils.php';
+
+startSession();
+
+if (isLoggedIn()) {
+  redirectToHome();
+}
+
 $UserId = $name = $phone = $password = $confirmPassword = "";
 $errors = [
     "UserId" => "",

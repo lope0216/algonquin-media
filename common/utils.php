@@ -16,3 +16,8 @@ function unauthorizedAccess() {
   header('location: login.php');
   exit();
 }
+
+function redirectToHome() {
+  header('location: myAlbums.php');
+  exit();
+}
