@@ -42,9 +42,32 @@ try {
     $errorMessage = "Error fetching friend requests: " . $e->getMessage();
 }
 
+// Handle friend defriend action
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['defriend'])) {
+    $defriendIds = $_POST['friend_ids'] ?? [];
+
+    if (!empty($defriendIds)) {
+        try {
+            $placeholders = implode(',', array_fill(0, count($defriendIds), '?'));
+            $stmt = $conn->prepare("
+                DELETE FROM cst8257project.friendship
+                WHERE (Friend_RequesterId = ? AND Friend_RequesteeId IN ($placeholders))
+                   OR (Friend_RequesteeId = ? AND Friend_RequesterId IN ($placeholders))
+            ");
+            $stmt->execute(array_merge([$userId], $defriendIds, [$userId], $defriendIds));
+
+            header("Location: myFriends.php");
+            exit();
+        } catch (Exception $e) {
+            $errorMessage = "Error processing defriend: " . $e->getMessage();
+        }
+    } else {
+        $errorMessage = "Please select friends to remove.";
+    }
+}
+
 // Handle friend request actions (Accept/Deny)
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'process') {
     $acceptedIds = $_POST['friend_request_ids'] ?? [];
     $deniedIds = $_POST['deny_request_ids'] ?? [];
 
@@ -80,7 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
