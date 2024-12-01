@@ -2,6 +2,12 @@
 session_start();
 require_once '../db/DBconnection.php'; // Include database connection
 
+// Redirect to login if user is not logged in
+if (!isset($_SESSION['UserId'])) {
+    header("Location: /pages/login.php");
+    exit();
+}
+
 $conn = getPDOConnection(); // Assuming this function returns a PDO instance
 
 // Initialize variables
@@ -13,16 +19,41 @@ $errorMessage = '';
 
 // Fetch friends
 try {
-    $stmt = $conn->prepare("
-        SELECT f.Friend_RequesterId AS FriendId, u.Name AS FriendName, COUNT(DISTINCT a.Album_Id) AS SharedAlbums
-        FROM cst8257project.friendship f
-        JOIN cst8257project.user u ON f.Friend_RequesterId = u.UserId OR f.Friend_RequesteeId = u.UserId
-        LEFT JOIN cst8257project.album a ON f.Friend_RequesteeId = a.Owner_id
-        WHERE (f.Friend_RequesterId = :userId OR f.Friend_RequesteeId = :userId) AND f.Status = 'accepted'
-        GROUP BY f.Friend_RequesterId, u.Name
+    // Fetch all accepted friendships where the current user is involved
+    $stmt1 = $conn->prepare("
+        SELECT Friend_RequesteeId AS FriendId 
+        FROM cst8257project.friendship 
+        WHERE Friend_RequesterId = :userId AND Status = 'accepted'
     ");
-    $stmt->execute([':userId' => $userId]);
-    $friends = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt1->execute([':userId' => $userId]);
+    $friends1 = $stmt1->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmt2 = $conn->prepare("
+        SELECT Friend_RequesterId AS FriendId 
+        FROM cst8257project.friendship 
+        WHERE Friend_RequesteeId = :userId AND Status = 'accepted'
+    ");
+    $stmt2->execute([':userId' => $userId]);
+    $friends2 = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+    $friends = array_merge($friends1, $friends2);
+
+    // Fetch friend names and shared albums
+    $friendIds = array_column($friends, 'FriendId');
+    if (!empty($friendIds)) {
+        $placeholders = implode(',', array_fill(0, count($friendIds), '?'));
+        $stmt = $conn->prepare("
+            SELECT u.UserId AS FriendId, u.Name AS FriendName, COUNT(a.Album_Id) AS SharedAlbums
+            FROM cst8257project.user u
+            LEFT JOIN cst8257project.album a ON a.Owner_Id = u.UserId
+            WHERE u.UserId IN ($placeholders)
+            GROUP BY u.UserId
+        ");
+        $stmt->execute($friendIds);
+        $friends = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $friends = [];
+    }
 } catch (Exception $e) {
     $errorMessage = "Error fetching friends: " . $e->getMessage();
 }
@@ -30,79 +61,65 @@ try {
 // Fetch friend requests
 try {
     $stmt = $conn->prepare("
-        SELECT f.Friend_RequesterId AS RequesterId, u.Name AS RequesterName
+        SELECT Friend_RequesterId AS RequesterId, u.Name AS RequesterName
         FROM cst8257project.friendship f
         LEFT JOIN cst8257project.user u ON f.Friend_RequesterId = u.UserId
-        WHERE f.Friend_RequesteeId = :userId AND f.Status = 'request'
+        WHERE Friend_RequesteeId = :userId AND Status = 'request'
     ");
     $stmt->execute([':userId' => $userId]);
     $friendRequests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 } catch (Exception $e) {
     $errorMessage = "Error fetching friend requests: " . $e->getMessage();
 }
 
-// Handle friend defriend action
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['defriend'])) {
-    $defriendIds = $_POST['friend_ids'] ?? [];
-
-    if (!empty($defriendIds)) {
-        try {
-            $placeholders = implode(',', array_fill(0, count($defriendIds), '?'));
-            $stmt = $conn->prepare("
-                DELETE FROM cst8257project.friendship
-                WHERE (Friend_RequesterId = ? AND Friend_RequesteeId IN ($placeholders))
-                   OR (Friend_RequesteeId = ? AND Friend_RequesterId IN ($placeholders))
-            ");
-            $stmt->execute(array_merge([$userId], $defriendIds, [$userId], $defriendIds));
-
-            header("Location: myFriends.php");
-            exit();
-        } catch (Exception $e) {
-            $errorMessage = "Error processing defriend: " . $e->getMessage();
-        }
-    } else {
-        $errorMessage = "Please select friends to remove.";
-    }
-}
-
-// Handle friend request actions (Accept/Deny)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'process') {
-    $acceptedIds = $_POST['friend_request_ids'] ?? [];
-    $deniedIds = $_POST['deny_request_ids'] ?? [];
-
-    if (!empty($acceptedIds) || !empty($deniedIds)) {
-        try {
-            if (!empty($acceptedIds)) {
-                $placeholders = implode(',', array_fill(0, count($acceptedIds), '?'));
+// Handle friendship actions (Accept/Deny/Delete)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        if (isset($_POST['accept_requests'])) {
+            // Accept selected friend requests
+            $requesterIds = $_POST['friend_request_ids'] ?? [];
+            if (!empty($requesterIds)) {
+                $placeholders = implode(',', array_fill(0, count($requesterIds), '?'));
                 $stmt = $conn->prepare("
                     UPDATE cst8257project.friendship 
                     SET Status = 'accepted' 
                     WHERE Friend_RequesteeId = ? AND Friend_RequesterId IN ($placeholders)
                 ");
-                $stmt->execute(array_merge([$userId], $acceptedIds));
+                $stmt->execute(array_merge([$userId], $requesterIds));
             }
-
-            if (!empty($deniedIds)) {
-                $placeholders = implode(',', array_fill(0, count($deniedIds), '?'));
+        } elseif (isset($_POST['deny_requests'])) {
+            // Deny selected friend requests
+            $requesterIds = $_POST['friend_request_ids'] ?? [];
+            if (!empty($requesterIds)) {
+                $placeholders = implode(',', array_fill(0, count($requesterIds), '?'));
                 $stmt = $conn->prepare("
-                    UPDATE cst8257project.friendship 
-                    SET Status = 'denied' 
-                    WHERE Friend_RequesteeId = ? AND Friend_RequesterId IN ($placeholders)
+                    DELETE FROM cst8257project.friendship 
+                    WHERE Friend_RequesteeId = ? AND Friend_RequesterId IN ($placeholders) AND Status = 'request'
                 ");
-                $stmt->execute(array_merge([$userId], $deniedIds));
+                $stmt->execute(array_merge([$userId], $requesterIds));
             }
-
-            header("Location: myFriends.php");
-            exit();
-        } catch (Exception $e) {
-            $errorMessage = "Error processing friend requests: " . $e->getMessage();
+        } elseif (isset($_POST['defriend'])) {
+            // Delete selected friends
+            $friendIds = $_POST['friend_ids'] ?? [];
+            if (!empty($friendIds)) {
+                $placeholders = implode(',', array_fill(0, count($friendIds), '?'));
+                $stmt = $conn->prepare("
+                    DELETE FROM cst8257project.friendship 
+                    WHERE ((Friend_RequesterId = ? AND Friend_RequesteeId IN ($placeholders)) OR 
+                          (Friend_RequesteeId = ? AND Friend_RequesterId IN ($placeholders))) 
+                          AND Status = 'accepted'
+                ");
+                $stmt->execute(array_merge([$userId], $friendIds, [$userId], $friendIds));
+            }
         }
-    } else {
-        $errorMessage = "Please select friend requests to process.";
+        header("Location: myFriends.php");
+        exit();
+    } catch (Exception $e) {
+        $errorMessage = "Error processing requests: " . $e->getMessage();
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -128,55 +145,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <h2>Friends:</h2>
     <p><a href="addFriend.php">Add Friends</a></p>
 
-    <form action="" method="POST">
-        <table class="table">
-            <thead>
+    <form method="POST">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Shared Albums</th>
+                <th>Defriend</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($friends as $friend): ?>
                 <tr>
-                    <th>Name</th>
-                    <th>Shared Albums</th>
-                    <th>Defriend</th>
+                    <td><a href="myPictures.php?friendId=<?= htmlspecialchars($friend['FriendId']) ?>"><?= htmlspecialchars($friend['FriendName']) ?></a></td>
+                    <td><?= htmlspecialchars($friend['SharedAlbums']) ?></td>
+                    <td><input type="checkbox" name="friend_ids[]" value="<?= htmlspecialchars($friend['FriendId']) ?>"></td>
                 </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($friends as $friend): ?>
-                    <tr>
-                        <td><a href="myPictures.php?friendId=<?= htmlspecialchars($friend['FriendId']) ?>"><?= htmlspecialchars($friend['FriendName']) ?></a></td>
-                        <td><?= htmlspecialchars($friend['SharedAlbums']) ?></td>
-                        <td><input type="checkbox" name="friend_ids[]" value="<?= htmlspecialchars($friend['FriendId']) ?>"></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-        <button type="submit" name="defriend" class="btn btn-danger">Defriend Selected</button>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <button type="submit" name="defriend" class="btn btn-danger">Defriend Selected</button>
     </form>
+
 
     <!-- Friend Requests -->
     <h2>Friend Requests:</h2>
     <?php if (empty($friendRequests)): ?>
         <p>No friend requests found.</p>
     <?php else: ?>
-        <form action="" method="POST">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Accept or Deny</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($friendRequests as $request): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($request['RequesterName']) ?></td>
-                            <td>
-                                <input type="checkbox" name="friend_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>"> Accept
-                                <input type="checkbox" name="deny_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>"> Deny
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-            <button type="submit" name="action" value="process" class="btn btn-primary">Submit</button>
-        </form>
+        <form method="POST">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($friendRequests as $request): ?>
+                <tr>
+                    <td><?= htmlspecialchars($request['RequesterName']) ?></td>
+                    <td>
+                        <input type="checkbox" name="friend_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>"> Select
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <button type="submit" name="accept_requests" class="btn btn-primary">Accept</button>
+    <button type="submit" name="deny_requests" class="btn btn-secondary">Deny</button>
+    </form>
+
     <?php endif; ?>
 
 </div>
