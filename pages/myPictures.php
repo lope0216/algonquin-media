@@ -33,6 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET['album'])) {
         if (!empty($pictures)) {
             $selectedPicture = $pictures[0];
         }
+
+        // If a specific picture is requested, update the selected picture
+        if (!empty($_GET['picture'])) {
+            foreach ($pictures as $picture) {
+                if ($picture['Picture_Id'] === $_GET['picture']) {
+                    $selectedPicture = $picture;
+                    break;
+                }
+            }
+        }
     } catch (Exception $e) {
         $errorMessage = "Error fetching pictures: " . $e->getMessage();
     }
@@ -75,9 +85,15 @@ if ($selectedPicture) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/global.css' ?>" />
     <title>My Pictures</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+    </style>
 </head>
-<body>
+<body class="body-layout">
     <?php include("../common/header.php"); ?>
 
     <div class="container">
@@ -106,20 +122,53 @@ if ($selectedPicture) {
             </div>
         </form>
 
-        <!-- Picture Area -->
-        <?php if ($selectedPicture): ?>
-            <div class="row">
-                <div class="col-md-8">
-                    <img src="uploads/<?= htmlspecialchars($albumId) ?>/<?= htmlspecialchars($selectedPicture['File_Name']) ?>" alt="<?= htmlspecialchars($selectedPicture['Title']) ?>" class="img-fluid border mb-3">
-                    <p><strong>Description:</strong> <?= htmlspecialchars($selectedPicture['Description'] ?? 'No description available') ?></p>
+        <!-- Carousel -->
+        <?php if (!empty($pictures)): ?>
+            <div id="pictureCarousel" class="carousel slide" data-bs-ride="carousel">
+                <!-- Indicators -->
+                <div class="carousel-indicators">
+                    <?php foreach ($pictures as $index => $picture): ?>
+                        <button type="button" data-bs-target="#pictureCarousel" data-bs-slide-to="<?= $index ?>" <?= $index === 0 ? 'class="active" aria-current="true"' : '' ?> aria-label="Slide <?= $index + 1 ?>"></button>
+                    <?php endforeach; ?>
                 </div>
-                <div class="col-md-4">
+
+                <!-- Carousel Items -->
+                <div class="carousel-inner">
+                    <?php foreach ($pictures as $index => $picture): ?>
+                        <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                            <img src="uploads/<?= htmlspecialchars($albumId) ?>/<?= htmlspecialchars($picture['File_Name']) ?>" 
+                                 class="d-block w-100" 
+                                 alt="<?= htmlspecialchars($picture['Title']) ?>">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5><?= htmlspecialchars($picture['Title']) ?></h5>
+                                <p><?= htmlspecialchars($picture['Description'] ?? 'No description available') ?></p>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <!-- Carousel Controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#pictureCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#pictureCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        <?php else: ?>
+            <p class="text-center text-muted">No pictures found in this album.</p>
+        <?php endif; ?>
+
+        <!-- Comments Section -->
+        <?php if ($selectedPicture): ?>
+            <div class="row mt-4">
+                <div class="col-md-12">
                     <h5>Comments</h5>
                     <ul class="list-group mb-3">
                         <?php foreach ($comments as $comment): ?>
-                            <li class="list-group-item">
-                                <?= htmlspecialchars($comment['Comment_Text']) ?>
-                            </li>
+                            <li class="list-group-item"><?= htmlspecialchars($comment['Comment_Text']) ?></li>
                         <?php endforeach; ?>
                         <?php if (empty($comments)): ?>
                             <li class="list-group-item">No comments yet.</li>
@@ -131,22 +180,10 @@ if ($selectedPicture) {
                             <textarea name="comment" class="form-control" rows="3" placeholder="Write a comment..." required></textarea>
                         </div>
                         <input type="hidden" name="pictureId" value="<?= htmlspecialchars($selectedPicture['Picture_Id']) ?>">
-                        <button type="submit" class="btn btn-primary">Add Comment</button>
+                        <button type="submit" class="btn btn-primary mb-3">Add Comment</button>
                     </form>
                 </div>
             </div>
-
-            <!-- Thumbnail Bar -->
-            <div class="d-flex overflow-auto mt-4">
-                <?php foreach ($pictures as $picture): ?>
-                    <img src="uploads/<?= htmlspecialchars($albumId) ?>/<?= htmlspecialchars($picture['File_Name']) ?>"
-                         class="img-thumbnail me-2 <?= $picture['Picture_Id'] === $selectedPicture['Picture_Id'] ? 'border border-primary' : '' ?>"
-                         style="width: 100px; cursor: pointer;"
-                         onclick="window.location.href='myPictures.php?album=<?= htmlspecialchars($_GET['album']) ?>&picture=<?= htmlspecialchars($picture['Picture_Id']) ?>'">
-                <?php endforeach; ?>
-            </div>
-        <?php else: ?>
-            <p class="text-center text-muted">No pictures found in this album.</p>
         <?php endif; ?>
     </div>
 

@@ -111,8 +111,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>My Friends</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/myFriends.css' ?>">
+    <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/global.css' ?>">
+    
 </head>
-<body>
+<body class="body-layout">
 
 <?php include("../common/header.php"); ?>
 <div class="container mt-4">
