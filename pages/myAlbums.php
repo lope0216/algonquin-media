@@ -2,12 +2,13 @@
 
 include_once __DIR__ . '/../model/album.php';
 include_once __DIR__ . '/../model/picture.php';
+include_once __DIR__. '/../common/utils.php';
 
-session_start();
-// if (!$_SESSION['loggedIn']) {
-//   header("Location: index.php");
-//   exit();
-// }
+startSession();
+
+if (!isLoggedIn()) {
+  unauthorizedAccess();
+}
 
 $albumModel = new AlbumModel();
 $pictureModel = new PictureModel();

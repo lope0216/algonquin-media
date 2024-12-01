@@ -1,8 +1,9 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-  session_start();
-}
-$isLoggedIn = $_SESSION['loggedIn'] ?? false;
+
+include_once __DIR__ .'/utils.php';
+
+startSession();
+
 ?>
 
 <nav class="navbar navbar-expand-lg bg-dark" data-bs-theme="dark">
@@ -21,8 +22,8 @@ $isLoggedIn = $_SESSION['loggedIn'] ?? false;
         <a class="nav-link" href="./myAlbums.php">My Albums</a>
         <a class="nav-link" href="./myPictures.php">My Pictures</a>
         <a class="nav-link" href="./uploadPictures.php">Upload Pictures</a>
-        <a class="nav-link <?=$isLoggedIn ? 'hidden' : ''?>" href="./login.php">Login</a>
-        <a class="nav-link <?=$isLoggedIn ? '' : 'hidden'?>" href="./logout.php">Logout</a>
+        <a class="nav-link <?=isLoggedIn() ? 'd-none' : ''?>" href="./login.php">Login</a>
+        <a class="nav-link <?=isLoggedIn() ? '' : 'd-none'?>" href="./logout.php">Logout</a>
       </div>
     </div>
   </div>
