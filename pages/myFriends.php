@@ -33,59 +33,54 @@ try {
         SELECT f.Friend_RequesterId AS RequesterId, u.Name AS RequesterName
         FROM cst8257project.friendship f
         LEFT JOIN cst8257project.user u ON f.Friend_RequesterId = u.UserId
-        WHERE f.Friend_RequesteeId = :userId AND f.Status = 'pending'
+        WHERE f.Friend_RequesteeId = :userId AND f.Status = 'request'
     ");
     $stmt->execute([':userId' => $userId]);
     $friendRequests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if (empty($friendRequests)) {
-        $errorMessage = "No friend requests found.";
-    }
 } catch (Exception $e) {
     $errorMessage = "Error fetching friend requests: " . $e->getMessage();
 }
 
 // Handle friend request actions (Accept/Deny)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['friend_request_ids']) || isset($_POST['deny_request_ids'])) {
-        $action = $_POST['action'] ?? '';
-        $acceptedIds = $_POST['friend_request_ids'] ?? [];
-        $deniedIds = $_POST['deny_request_ids'] ?? [];
+    $action = $_POST['action'] ?? '';
+    $acceptedIds = $_POST['friend_request_ids'] ?? [];
+    $deniedIds = $_POST['deny_request_ids'] ?? [];
 
-        if (!empty($acceptedIds) || !empty($deniedIds)) {
-            try {
-                $statusUpdates = [];
-                if (!empty($acceptedIds)) {
-                    $placeholders = implode(',', array_fill(0, count($acceptedIds), '?'));
-                    $stmt = $conn->prepare("
-                        UPDATE cst8257project.friendship 
-                        SET Status = 'accepted' 
-                        WHERE Friend_RequesteeId = :userId AND Friend_RequesterId IN ($placeholders)
-                    ");
-                    $stmt->execute(array_merge([$userId], $acceptedIds));
-                }
-
-                if (!empty($deniedIds)) {
-                    $placeholders = implode(',', array_fill(0, count($deniedIds), '?'));
-                    $stmt = $conn->prepare("
-                        UPDATE cst8257project.friendship 
-                        SET Status = 'denied' 
-                        WHERE Friend_RequesteeId = :userId AND Friend_RequesterId IN ($placeholders)
-                    ");
-                    $stmt->execute(array_merge([$userId], $deniedIds));
-                }
-
-                header("Location: myFriends.php");
-                exit();
-            } catch (Exception $e) {
-                $errorMessage = "Error processing friend requests: " . $e->getMessage();
+    if (!empty($acceptedIds) || !empty($deniedIds)) {
+        try {
+            if (!empty($acceptedIds)) {
+                $placeholders = implode(',', array_fill(0, count($acceptedIds), '?'));
+                $stmt = $conn->prepare("
+                    UPDATE cst8257project.friendship 
+                    SET Status = 'accepted' 
+                    WHERE Friend_RequesteeId = ? AND Friend_RequesterId IN ($placeholders)
+                ");
+                $stmt->execute(array_merge([$userId], $acceptedIds));
             }
-        } else {
-            $errorMessage = "Please select friend requests to process.";
+
+            if (!empty($deniedIds)) {
+                $placeholders = implode(',', array_fill(0, count($deniedIds), '?'));
+                $stmt = $conn->prepare("
+                    UPDATE cst8257project.friendship 
+                    SET Status = 'denied' 
+                    WHERE Friend_RequesteeId = ? AND Friend_RequesterId IN ($placeholders)
+                ");
+                $stmt->execute(array_merge([$userId], $deniedIds));
+            }
+
+            header("Location: myFriends.php");
+            exit();
+        } catch (Exception $e) {
+            $errorMessage = "Error processing friend requests: " . $e->getMessage();
         }
+    } else {
+        $errorMessage = "Please select friend requests to process.";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
