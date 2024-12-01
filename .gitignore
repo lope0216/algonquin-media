@@ -1,3 +1,6 @@
 # Code Editors
 /nbproject/private/
 .vscode/
+
+# Uploaded Files
+/pages/uploads/*

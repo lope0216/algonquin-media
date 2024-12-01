@@ -2,7 +2,7 @@
 
 include_once __DIR__ . '/../model/album.php';
 include_once __DIR__ . '/../model/picture.php';
-include_once __DIR__. '/../common/utils.php';
+include_once __DIR__ . '/../common/utils.php';
 
 startSession();
 
