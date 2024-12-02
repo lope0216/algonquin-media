@@ -3,25 +3,27 @@ require_once '../db/DBconnection.php'; // Correct path to DBconnection.php
 include_once __DIR__ . '/../common/utils.php';
 
 startSession();
-
+$user = $_SESSION['UserName'];
+$userId = $_SESSION['UserId'];
+// Check if the user is logged in
 if (!isLoggedIn()) {
-  unauthorizedAccess();
+    unauthorizedAccess();
 }
+
 
 // Fetch albums from database
 $pdo = getPDOConnection();
 $albums = [];
 try {
-    $userid = 'U0001'; // Replace with actual UserId
     $stmt = $pdo->prepare("SELECT Album_Id as AlbumId, Title as AlbumName FROM cst8257project.album WHERE Owner_Id = :userId");
-    $stmt->bindParam(':userId', $userid);
+    $stmt->bindParam(':userId', $userId);
     $stmt->execute();
     $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     echo "Error fetching albums: " . $e->getMessage();
 }
 
-// Initialize variables
+// Initialize variables for handling file upload
 $uploadedFiles = [];
 $uploadErrors = [];
 $successMessage = '';
@@ -86,19 +88,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
     <link rel="stylesheet" href="/../public/css/uploadPictures.css" />
     <link rel="stylesheet" href="/../public/css/global.css" />
-    
     <title>Upload Pictures</title>
 </head>
 
