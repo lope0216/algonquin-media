@@ -56,12 +56,15 @@ $errorMessage = "User not found";
                                 <label for="password" class="form-label">Password:</label>
                                 <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" >
                             </div>
+                            <div class='alert alert-danger text-center <?= empty($errorMessage)? "d-none" : "" ?>'><?= $errorMessage ?></div>
+
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">Log In</button>
                             </div>
                             <div class="d-grid mt-2">
                                 <button type="reset" class="btn btn-secondary">Clear</button>
                             </div>
+                            
                         </form>
                         <div class="text-center mt-3">
                             <p>Don't have an account? <a href="NewUser.php" class="text-decoration-none">Sign up</a></p>
@@ -70,7 +73,6 @@ $errorMessage = "User not found";
                 </div>
             </div>
         </div>
-        <div class='alert alert-danger text-center <?= empty($errorMessage)? "d-none" : "" ?>'><?= $errorMessage ?></div>
     </main>
     <?php include(dirname(__FILE__) . "/../common/footer.php"); ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -77,9 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Add Friend</title>
     <!-- Include Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/../public/css/login.css"> <!-- Your custom CSS if needed -->
+    <link rel="stylesheet" href="/../public/css/global.css"> <!-- Your custom CSS if needed -->
 </head>
-<body>
+<body class="body-layout">
     <?php include(dirname(__FILE__) . "/../common/header.php"); ?>
 
     <div class="container my-5">
