@@ -91,9 +91,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <label for="friend_user_id" class="form-label">Enter User ID:</label>
                 <input type="text" class="form-control" id="friend_user_id" name="friend_user_id" required>
             </div>
-            <button type="submit" class="btn btn-primary">Send Friend Request</button>
-        </form>
-
         <?php
         if (isset($success_message)) {
             echo "<div class='alert alert-success'>$success_message</div>";
@@ -102,6 +99,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo "<div class='alert alert-danger'>$error_message</div>";
         }
         ?>
+            <button type="submit" class="btn btn-primary">Send Friend Request</button>
+        </form>
+
     </div>
 
     <?php include(dirname(__FILE__) . "/../common/footer.php"); ?>
