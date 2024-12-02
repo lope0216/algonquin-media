@@ -7,42 +7,45 @@ startSession();
 if (!isLoggedIn()) {
     unauthorizedAccess();
 }
+$friendId = isset($_GET['friendId']) ? $_GET['friendId'] : null;
+$friendName = isset($_GET['friendName']) ? $_GET['friendName'] : null;
 
-
-//test
-
-
-// Retrieve friendId and friendName from the GET request
-$friendId = isset($_GET['friendId']) ? htmlspecialchars($_GET['friendId']) : null;
-$friendName = isset($_GET['friendName']) ? htmlspecialchars($_GET['friendName']) : null;
-
-// Initialize $pdo here for use throughout the script
-$pdo = null;
-
-if ($friendId) {
-    try {
-        // Ensure the PDO connection is established
-        $pdo = getPDOConnection();
-        $albums = getAlbum($pdo, $friendId);
-
-        if (empty($albums)) {
-            $errorMessage = "No albums found for the specified friend.";
-        }
-    } catch (Exception $e) {
-        $errorMessage = "Error fetching albums: " . $e->getMessage();
-    }
-} else {
-    $errorMessage = "Friend ID is required.";
-}
-
-// Initialize variables for handling pictures and comments
+$pdo = getPDOConnection();
+$albums = [];
+$comments = [];
 $pictures = [];
 $selectedPicture = null;
 $successMessage = '';
 $errorMessage = '';
 
-// Handle album selection and fetch pictures if an album is selected
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET['album']) && $pdo) {
+if ($friendId) {
+    try {
+        // Fetch albums owned by the friend with the given friendId
+        $albums = getAlbum($pdo, $friendId); 
+    } catch (Exception $e) {
+        $errorMessage = "Error fetching albums: " . $e->getMessage();
+    }
+} else {
+    $errorMessage = "No friend ID provided.";
+}
+
+
+try {
+    $friendId = isset($_GET['friendId']) ? htmlspecialchars($_GET['friendId']) : null;
+    if (!$friendId) {
+        throw new Exception("Friend ID is required.");
+    }
+
+    
+    if (empty($albums)) {
+        $errorMessage = "No albums found for the specified friend.";
+    }
+} catch (Exception $e) {
+    $errorMessage = "Error fetching albums: " . $e->getMessage();
+}
+
+// Handle album selection and fetch pictures
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET['album'])) {
     $albumId = htmlspecialchars($_GET['album']);
     try {
         $stmt = $pdo->prepare("SELECT Picture_Id, File_Name, Title, Description FROM cst8257project.picture WHERE Album_Id = :albumId");
@@ -70,15 +73,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET['album']) && $pdo) {
 }
 
 // Handle comment submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['comment']) && !empty($_POST['pictureId']) && $pdo) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['comment']) && !empty($_POST['pictureId'])) {
+    $friendId = isset($_GET['friendId']) ? $_GET['friendId'] : null;
+$friendName = isset($_GET['friendName']) ? $_GET['friendName'] : null;
+$albums = getAlbum($pdo, $friendId);
     $comment = htmlspecialchars($_POST['comment']);
     $pictureId = htmlspecialchars($_POST['pictureId']);
-    $userId = $_SESSION['UserId'];
+    $userId = $_SESSION['UserId']; 
 
     if (!$userId) {
         $errorMessage = "User not logged in.";
     } else {
-        try {
+        try { 
             $stmt = $pdo->prepare("INSERT INTO cst8257project.comment (Picture_Id, Comment_Text, Author_Id) VALUES (:pictureId, :commentText, :authorId)");
             $stmt->execute([
                 ':pictureId' => $pictureId,
@@ -97,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['comment']) && !empty
 }
 
 // Fetch comments for the selected picture
-if ($selectedPicture && $pdo) {
+if ($selectedPicture) {
     try {
         $stmt = $pdo->prepare("SELECT Comment_Text FROM cst8257project.comment WHERE Picture_Id = :pictureId");
         $stmt->bindParam(':pictureId', $selectedPicture['Picture_Id'], PDO::PARAM_INT);
@@ -107,16 +113,13 @@ if ($selectedPicture && $pdo) {
         $errorMessage = "Error fetching comments: " . $e->getMessage();
     }
 }
-
-function getAlbum($pdo, $friendId) {
-    $stmt = $pdo->prepare("SELECT Album_Id as AlbumId, Title as AlbumName FROM cst8257project.album WHERE Owner_Id = :friendId and Accessibility_Code = 'shared'");
-    $stmt->bindParam(':friendId', $friendId);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+function getAlbum($pdo, $friendId){
+    $stmt = $pdo->prepare("SELECT Album_Id as AlbumId, Title as AlbumName FROM cst8257project.album WHERE Owner_Id = :friendId and Accessibility_Code ='shared'" );
+        $stmt->bindParam(':friendId', $friendId);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
