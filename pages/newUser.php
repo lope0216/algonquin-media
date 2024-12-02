@@ -88,6 +88,7 @@ function insertUser($UserId, $name, $phone, $password, $conn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - Algonquin Social Media Website</title>
+    <script src="../public/js/newUser.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/newUser.css' ?>">
 </head>
@@ -127,7 +128,8 @@ function insertUser($UserId, $name, $phone, $password, $conn) {
                         </div>
                         <div>
                             <button type="submit" class="btn btn-primary">Submit</button>
-                            <button type="reset" class="btn btn-secondary">Clear</button>
+                            <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear</button>
+
                         </div>
                     </form>
                 </div>
