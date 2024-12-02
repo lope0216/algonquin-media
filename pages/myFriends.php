@@ -189,6 +189,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" name="accept_requests" class="btn btn-primary">Accept</button>
             <button type="submit" name="deny_requests" class="btn btn-secondary">Deny</button>
         </form>
+        <form method="POST">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($friendRequests as $request): ?>
+                <tr>
+                    <td><?= htmlspecialchars($request['RequesterName']) ?></td>
+                    <td>
+                        <input type="checkbox" name="friend_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>">
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <button type="submit" name="accept_requests" class="btn btn-primary">Accept</button>
+    <button type="submit" name="deny_requests" class="btn btn-secondary">Deny</button>
+    </form>
+
     <?php endif; ?>
 
 </div>
