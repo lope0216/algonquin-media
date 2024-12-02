@@ -74,9 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET['album'])) {
 
 // Handle comment submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['comment']) && !empty($_POST['pictureId'])) {
-    $friendId = isset($_GET['friendId']) ? $_GET['friendId'] : null;
-$friendName = isset($_GET['friendName']) ? $_GET['friendName'] : null;
-$albums = getAlbum($pdo, $friendId);
+    $friendId = isset($_POST['friendId']) ? $_POST['friendId'] : null;
+    $friendName = isset($_POST['friendName']) ? $_POST['friendName'] : null;
+    $albums = getAlbum($pdo, $friendId);
     $comment = htmlspecialchars($_POST['comment']);
     $pictureId = htmlspecialchars($_POST['pictureId']);
     $userId = $_SESSION['UserId']; 
@@ -94,7 +94,10 @@ $albums = getAlbum($pdo, $friendId);
             $successMessage = "Comment added successfully!";
             
             // Redirect to prevent form resubmission
-            header("Location: friendPictures.php?album=" . urlencode($_GET['album']) . "&picture=" . urlencode($pictureId));
+            header("Location: friendPictures.php?album=" . urlencode($_GET['album']) 
+            . "&picture=" . urlencode($pictureId) 
+            . "&friendId=" . urlencode($friendId) 
+            . "&friendName=" . urlencode($friendName));
             exit;
         } catch (Exception $e) {
             $errorMessage = "Error adding comment: " . $e->getMessage();
@@ -105,7 +108,12 @@ $albums = getAlbum($pdo, $friendId);
 // Fetch comments for the selected picture
 if ($selectedPicture) {
     try {
-        $stmt = $pdo->prepare("SELECT Comment_Text FROM cst8257project.comment WHERE Picture_Id = :pictureId");
+        $stmt = $pdo->prepare("
+            SELECT c.Comment_Text, u.Name as UserName
+            FROM cst8257project.comment c
+            INNER JOIN cst8257project.user u ON c.Author_Id = u.UserId
+            WHERE Picture_Id = :pictureId;
+        ");
         $stmt->bindParam(':pictureId', $selectedPicture['Picture_Id'], PDO::PARAM_INT);
         $stmt->execute();
         $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -203,7 +211,12 @@ function getAlbum($pdo, $friendId){
                     <h5>Comments</h5>
                     <ul class="list-group mb-3">
                         <?php foreach ($comments as $comment): ?>
-                            <li class="list-group-item"><?= htmlspecialchars($comment['Comment_Text']) ?></li>
+                            <li class="list-group-item">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold"><?= htmlspecialchars($comment['UserName']) ?></div>
+                                    <?= htmlspecialchars($comment['Comment_Text']) ?>
+                                </div>
+                            </li>
                         <?php endforeach; ?>
                         <?php if (empty($comments)): ?>
                             <li class="list-group-item">No comments yet.</li>
