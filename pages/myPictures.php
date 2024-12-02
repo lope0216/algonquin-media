@@ -18,7 +18,7 @@ $errorMessage = '';
 
 // Fetch albums owned by the user
 try {
-    $userid = 'U0001'; // Replace with actual UserId
+    $userid = $_SESSION['UserId']; 
     $stmt = $pdo->prepare("SELECT Album_Id as AlbumId, Title as AlbumName FROM cst8257project.album WHERE Owner_Id = :userId");
     $stmt->bindParam(':userId', $userid);
     $stmt->execute();
