@@ -1,5 +1,12 @@
 <?php
 require_once '../db/DBconnection.php';
+include_once __DIR__ . '/../common/utils.php';
+
+startSession();
+
+if (!isLoggedIn()) {
+  unauthorizedAccess();
+}
 
 $pdo = getPDOConnection();
 $albums = [];
@@ -36,8 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET['album'])) {
 
         // If a specific picture is requested, update the selected picture
         if (!empty($_GET['picture'])) {
+            $selectedPictureId = htmlspecialchars($_GET['picture']);
             foreach ($pictures as $picture) {
-                if ($picture['Picture_Id'] === $_GET['picture']) {
+                if ($picture['Picture_Id'] == $selectedPictureId) {
                     $selectedPicture = $picture;
                     break;
                 }
@@ -135,7 +143,9 @@ if ($selectedPicture) {
                 <!-- Carousel Items -->
                 <div class="carousel-inner">
                     <?php foreach ($pictures as $index => $picture): ?>
-                        <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                        <div class="carousel-item <?= $picture['Picture_Id'] == $selectedPicture['Picture_Id'] ? 'active' : '' 
+                        ?>"
+                        data-picture-id="<?=$picture['Picture_Id']?>" data-test="<?=$selectedPicture['Picture_Id']?>">
                             <img src="uploads/<?= htmlspecialchars($albumId) ?>/<?= htmlspecialchars($picture['File_Name']) ?>" 
                                  class="d-block w-100" 
                                  alt="<?= htmlspecialchars($picture['Title']) ?>">
@@ -148,11 +158,11 @@ if ($selectedPicture) {
                 </div>
 
                 <!-- Carousel Controls -->
-                <button class="carousel-control-prev" type="button" data-bs-target="#pictureCarousel" data-bs-slide="prev">
+                <button class="carousel-control-prev" type="button">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Previous</span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#pictureCarousel" data-bs-slide="next">
+                <button class="carousel-control-next" type="button">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Next</span>
                 </button>
@@ -189,6 +199,7 @@ if ($selectedPicture) {
 
     <?php include("../common/footer.php"); ?>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+    <script src="../public/js/myPictures.js"></script>
 </body>
 </html>
