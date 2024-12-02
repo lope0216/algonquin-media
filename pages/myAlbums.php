@@ -21,7 +21,7 @@ if (isFromSubmit()) {
   $albumId = $_POST['album_id'];
   if ($type == 'delete') {
     $pictureModel->deletePicturesFromAlbum($albumId);
-    $albumModel->deleteUserAlbumById($albumId, 'U0001');
+    $albumModel->deleteUserAlbumById($albumId, $userId);
   }
 
   if ($type == 'save') {
