@@ -23,9 +23,7 @@ h1{
     flex: 1; /* This makes the content area grow and push the footer to the bottom */
 }
 
-.footer {
-    background-color: #f1f1f1;
-    padding: 10px 0;
-    width: 100%;
-    text-align: center;
+footer {
+    background-color: #f8f9fa;
+    padding: 10px 0
 }
