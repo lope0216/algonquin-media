@@ -81,7 +81,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['comment']) && !empty
 // Fetch comments for the selected picture
 if ($selectedPicture) {
     try {
-        $stmt = $pdo->prepare("SELECT Comment_Text FROM cst8257project.comment WHERE Picture_Id = :pictureId");
+        $stmt = $pdo->prepare("
+            SELECT c.Comment_Text, u.Name as UserName
+            FROM cst8257project.comment c
+            INNER JOIN cst8257project.user u ON c.Author_Id = u.UserId
+            WHERE Picture_Id = :pictureId;
+        ");
         $stmt->bindParam(':pictureId', $selectedPicture['Picture_Id']);
         $stmt->execute();
         $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -182,7 +187,12 @@ if ($selectedPicture) {
                     <h5>Comments</h5>
                     <ul class="list-group mb-3">
                         <?php foreach ($comments as $comment): ?>
-                            <li class="list-group-item"><?= htmlspecialchars($comment['Comment_Text']) ?></li>
+                            <li class="list-group-item">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold"><?= htmlspecialchars($comment['UserName']) ?></div>
+                                    <?= htmlspecialchars($comment['Comment_Text']) ?>
+                                </div>
+                            </li>
                         <?php endforeach; ?>
                         <?php if (empty($comments)): ?>
                             <li class="list-group-item">No comments yet.</li>
