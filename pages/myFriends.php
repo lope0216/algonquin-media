@@ -113,6 +113,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/myFriends.css' ?>">
     <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/global.css' ?>">
+    <script>
+        function confirmDefriend() {
+            const checkboxes = document.querySelectorAll('input[name="friend_ids[]"]:checked');
+            if (checkboxes.length === 0) {
+                alert("Please select at least one friend to defriend.");
+                return false;
+            }
+            return confirm("Are you sure you want to defriend the selected friends?");
+        }
+
+    </script>
 </head>
 <body class="body-layout">
 
@@ -129,60 +140,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h2>Friends:</h2>
     <p><a href="addFriend.php">Add Friends</a></p>
 
-    <form method="POST">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Shared Albums</th>
-                <th>Defriend</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($friends as $friend): ?>
+    <form method="POST" onsubmit="return confirmDefriend();">
+        <table class="table">
+            <thead>
                 <tr>
-                    <td><a href="myPictures.php?friendId=<?= htmlspecialchars($friend['FriendId']) ?>"><?= htmlspecialchars($friend['FriendName']) ?></a></td>
-                    <td><?= htmlspecialchars($friend['SharedAlbums']) ?></td>
-                    <td><input type="checkbox" name="friend_ids[]" value="<?= htmlspecialchars($friend['FriendId']) ?>"></td>
+                    <th>Name</th>
+                    <th>Shared Albums</th>
+                    <th>Defriend</th>
                 </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-    <button type="submit" name="defriend" class="btn btn-danger">Defriend Selected</button>
+            </thead>
+            <tbody>
+                <?php foreach ($friends as $friend): ?>
+                    <tr>
+                        <td><a href="myPictures.php?friendId=<?= htmlspecialchars($friend['FriendId']) ?>"><?= htmlspecialchars($friend['FriendName']) ?></a></td>
+                        <td><?= htmlspecialchars($friend['SharedAlbums']) ?></td>
+                        <td><input type="checkbox" name="friend_ids[]" value="<?= htmlspecialchars($friend['FriendId']) ?>"></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <button type="submit" name="defriend" class="btn btn-danger">Defriend Selected</button>
     </form>
-
 
     <!-- Friend Requests -->
     <h2>Friend Requests:</h2>
     <?php if (empty($friendRequests)): ?>
         <p>No friend requests found.</p>
     <?php else: ?>
-        <form method="POST">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($friendRequests as $request): ?>
-                <tr>
-                    <td><?= htmlspecialchars($request['RequesterName']) ?></td>
-                    <td>
-                        <input type="checkbox" name="friend_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>"> Select
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-    <button type="submit" name="accept_requests" class="btn btn-primary">Accept</button>
-    <button type="submit" name="deny_requests" class="btn btn-secondary">Deny</button>
-    </form>
-
+        <form method="POST" onsubmit="return confirmDenyRequests();">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($friendRequests as $request): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($request['RequesterName']) ?></td>
+                            <td>
+                                <input type="checkbox" name="friend_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>">
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            <button type="submit" name="accept_requests" class="btn btn-primary">Accept</button>
+            <button type="submit" name="deny_requests" class="btn btn-secondary">Deny</button>
+        </form>
     <?php endif; ?>
 
 </div>
 <?php include("../common/footer.php"); ?>
 </body>
 </html>
+
+
