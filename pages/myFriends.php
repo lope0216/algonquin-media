@@ -19,24 +19,30 @@ $errorMessage = '';
 // Fetch Friends
 try {
     $stmt = $conn->prepare("
-        SELECT 
+    SELECT 
+        CASE 
+            WHEN f.Friend_RequesterId = :userId THEN f.Friend_RequesteeId
+            ELSE f.Friend_RequesterId
+        END AS FriendId,
+        u.Name AS FriendName,
+        COUNT(a.Album_Id) AS SharedAlbums
+    FROM cst8257project.friendship f
+    JOIN cst8257project.user u 
+        ON (u.UserId = f.Friend_RequesterId AND f.Friend_RequesteeId = :userId) OR 
+           (u.UserId = f.Friend_RequesteeId AND f.Friend_RequesterId = :userId)
+    LEFT JOIN cst8257project.album a 
+        ON a.Owner_Id = 
             CASE 
                 WHEN f.Friend_RequesterId = :userId THEN f.Friend_RequesteeId
                 ELSE f.Friend_RequesterId
-            END AS FriendId,
-            u.Name AS FriendName,
-            COUNT(a.Album_Id) AS SharedAlbums
-        FROM cst8257project.friendship f
-        JOIN cst8257project.user u ON 
-            (u.UserId = f.Friend_RequesterId AND f.Friend_RequesterId != :userId) OR 
-            (u.UserId = f.Friend_RequesteeId AND f.Friend_RequesteeId != :userId)
-        LEFT JOIN cst8257project.album a ON 
-            (a.Owner_Id = f.Friend_RequesterId OR a.Owner_Id = f.Friend_RequesteeId)
-        WHERE 
-            (f.Friend_RequesterId = :userId OR f.Friend_RequesteeId = :userId) AND 
-            f.Status = 'accepted'
-        GROUP BY FriendId, u.Name
-    ");
+            END
+        AND a.Accessibility_Code = 'shared'
+    WHERE 
+        (f.Friend_RequesterId = :userId OR f.Friend_RequesteeId = :userId) AND 
+        f.Status = 'accepted'
+    GROUP BY FriendId, u.Name
+");
+
     $stmt->execute([':userId' => $userId]);
     $friends = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
