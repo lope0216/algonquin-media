@@ -3,7 +3,7 @@ include_once('../db/DBconnection.php');
 include_once __DIR__ . '/../common/utils.php';
 
 startSession();
-
+$errorMessage = "";
 if (isLoggedIn()) {
   redirectToHome();
 }
@@ -23,10 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header("Location: addAlbum.php");
             exit();
         } else {
-            echo "<div class='alert alert-danger text-center'>Invalid User ID or password.</div>";
+            $errorMessage = "Invalid User ID or password!";
         }
     } else {
-        echo "<div class='alert alert-danger text-center'>User not found.</div>";
+$errorMessage = "User not found";
     }
 }
 ?>
@@ -50,11 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <form method="POST" action="Login.php">
                             <div class="mb-3">
                                 <label for="UserId" class="form-label">User ID:</label>
-                                <input type="text" class="form-control" id="UserId" name="UserId" placeholder="Enter your User ID" required>
+                                <input type="text" class="form-control" id="UserId" name="UserId" placeholder="Enter your User ID" >
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password:</label>
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" >
                             </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">Log In</button>
@@ -70,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
             </div>
         </div>
+        <div class='alert alert-danger text-center <?= empty($errorMessage)? "d-none" : "" ?>'><?= $errorMessage ?></div>
     </main>
     <?php include(dirname(__FILE__) . "/../common/footer.php"); ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

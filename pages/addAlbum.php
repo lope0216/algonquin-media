@@ -13,6 +13,8 @@ require_once("../model/album.php");
 $albumModel = new AlbumModel();
 $accessibilityOptions = $albumModel->getAlbumAccesibillityOptions();
 $user = $_SESSION['UserName'];
+$userId = $_SESSION['UserId'];
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $title = $_POST['title'] ?? '';
@@ -20,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $description = $_POST['description'] ?? '';
 
   // Call the createAlbum function
-  $message = $albumModel->createAlbum($title, $accessibility, $description, 0001, "U0001");
+  $message = $albumModel->createAlbum($title, $accessibility, $description, $userId);
 }
 
 ?>

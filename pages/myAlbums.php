@@ -13,6 +13,7 @@ if (!isLoggedIn()) {
 $albumModel = new AlbumModel();
 $pictureModel = new PictureModel();
 $user = $_SESSION['UserName'];
+$userId = $_SESSION['UserId'];
 $accessibilityModes = $albumModel->getAccessibilityModes();
 
 if (isFromSubmit()) {
@@ -29,7 +30,7 @@ if (isFromSubmit()) {
   }
 }
 
-$albums = $albumModel->getPhotoAlbumsByUserId('U0001'); //getAlbumsByUserId($student['UserId']);
+$albums = $albumModel->getPhotoAlbumsByUserId($userId); //getAlbumsByUserId($student['UserId']);
 
 function isFromSubmit() {
   return $_SERVER['REQUEST_METHOD'] === 'POST';

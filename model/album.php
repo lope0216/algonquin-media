@@ -39,18 +39,17 @@ class AlbumModel {
     return $accessibilityOptions;
   }
 
-  public function createAlbum($title, $accessibility, $description, $albumId = "001", $ownerId = "001") {
+  public function createAlbum($title, $accessibility, $description, $ownerId = "001") {
     if (!empty($title) && !empty($accessibility) && !empty($description)) {
         try {
             // Prepare the SQL statement
             $stmt = $this->pdo->prepare("
-                INSERT INTO album (Album_Id, Title, Description, Owner_Id, Accessibility_Code) 
-                VALUES (:Album_Id, :Title, :Description, :Owner_Id, :Accessibility_Code)
+                INSERT INTO album ( Title, Description, Owner_Id, Accessibility_Code) 
+                VALUES ( :Title, :Description, :Owner_Id, :Accessibility_Code)
             ");
   
             // Execute the statement with bound parameters
             $stmt->execute([
-                ':Album_Id' => $albumId,
                 ':Title' => $title,
                 ':Description' => $description,
                 ':Owner_Id' => $ownerId,
