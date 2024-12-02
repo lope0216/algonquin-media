@@ -69,6 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['comment']) && !empty
             ':authorId' => $userid,
         ]);
         $successMessage = "Comment added successfully!";
+        
+        // Redirect to prevent form resubmission and reload updated comments
+        header("Location: myPictures.php?album=" . urlencode($_GET['album']) . "&picture=" . urlencode($pictureId));
+        exit;
     } catch (Exception $e) {
         $errorMessage = "Error adding comment: " . $e->getMessage();
     }
