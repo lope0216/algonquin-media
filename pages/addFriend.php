@@ -25,9 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error_message = "Please enter a valid User ID.";
     } else {
         try {
-            $stmt = $conn->prepare("SELECT UserId FROM `user` WHERE UserId = ?");
+            // Check if the user exists in the database
+            $stmt = $conn->prepare("SELECT UserId, Name FROM `user` WHERE UserId = ?");
             $stmt->execute([$friend_user_id]);
-            $foundUser = $stmt->fetch(PDO::FETCH_ASSOC); // Use a different variable name
+            $foundUser = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($foundUser) {
                 $normalized_current_user_id = strtolower($current_user_id);
@@ -50,7 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     );
 
                     if ($stmt->execute([$current_user_id, $friend_user_id])) {
-                        $success_message = "The friend request has been sent.";
+                        // Retrieve the friend's name for the success message
+                        $friend_name = htmlspecialchars($foundUser['Name']);
+                        $success_message = "Your request has been sent to $friend_name (ID: $friend_user_id). Once $friend_name accepts your request, you and $friend_name will be friends and be able to view each other's shared albums.";
                     } else {
                         $error_message = "An error occurred while sending the friend request.";
                     }
@@ -63,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
+
 ?>
 
 <!DOCTYPE html>
