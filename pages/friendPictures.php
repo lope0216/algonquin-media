@@ -10,33 +10,98 @@ if (!isLoggedIn()) {
 
 $pdo = getPDOConnection();
 $albums = [];
+$comments = [];
+$pictures = [];
+$selectedPicture = null;
+$successMessage = '';
 $errorMessage = '';
 
-// Check if friendId is provided in the URL
-$friendId = isset($_GET['friendId']) ? $_GET['friendId'] : null;
-
-if ($friendId) {
-    try {
-        // Fetch albums owned by the friend with the given friendId
-        $stmt = $pdo->prepare("SELECT Album_Id as AlbumId, Title as AlbumName FROM cst8257project.album WHERE Owner_Id = :friendId");
-        $stmt->bindParam(':friendId', $friendId);
-        $stmt->execute();
-        $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-        $errorMessage = "Error fetching albums: " . $e->getMessage();
+try {
+    $friendId = isset($_GET['friendId']) ? htmlspecialchars($_GET['friendId']) : null;
+    if (!$friendId) {
+        throw new Exception("Friend ID is required.");
     }
-} else {
-    $errorMessage = "No friend ID provided.";
+
+    // Fetch albums owned by the user
+    $stmt = $pdo->prepare("SELECT Album_Id as AlbumId, Title as AlbumName FROM cst8257project.album WHERE Owner_Id = :friendId");
+    $stmt->bindParam(':friendId', $friendId, PDO::PARAM_INT);
+    $stmt->execute();
+    $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($albums)) {
+        $errorMessage = "No albums found for the specified friend.";
+    }
+} catch (Exception $e) {
+    $errorMessage = "Error fetching albums: " . $e->getMessage();
 }
 
-// Redirect to 'friendPictures.php' if an album is selected
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['selectedAlbum'])) {
-    $albumId = htmlspecialchars($_POST['selectedAlbum']);
-    header("Location: friendPictures.php?friendId=" . urlencode($friendId) . "&album=" . urlencode($albumId));
-    exit;
+// Handle album selection and fetch pictures
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET['album'])) {
+    $albumId = htmlspecialchars($_GET['album']);
+    try {
+        $stmt = $pdo->prepare("SELECT Picture_Id, File_Name, Title, Description FROM cst8257project.picture WHERE Album_Id = :albumId");
+        $stmt->bindParam(':albumId', $albumId, PDO::PARAM_INT);
+        $stmt->execute();
+        $pictures = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!empty($pictures)) {
+            $selectedPicture = $pictures[0];
+        }
+
+        // If a specific picture is requested, update the selected picture
+        if (!empty($_GET['picture'])) {
+            $selectedPictureId = htmlspecialchars($_GET['picture']);
+            foreach ($pictures as $picture) {
+                if ($picture['Picture_Id'] == $selectedPictureId) {
+                    $selectedPicture = $picture;
+                    break;
+                }
+            }
+        }
+    } catch (Exception $e) {
+        $errorMessage = "Error fetching pictures: " . $e->getMessage();
+    }
+}
+
+// Handle comment submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['comment']) && !empty($_POST['pictureId'])) {
+    $comment = htmlspecialchars($_POST['comment']);
+    $pictureId = htmlspecialchars($_POST['pictureId']);
+    $userId = $_SESSION['UserId']; 
+
+    if (!$userId) {
+        $errorMessage = "User not logged in.";
+    } else {
+        try { 
+            $stmt = $pdo->prepare("INSERT INTO cst8257project.comment (Picture_Id, Comment_Text, Author_Id) VALUES (:pictureId, :commentText, :authorId)");
+            $stmt->execute([
+                ':pictureId' => $pictureId,
+                ':commentText' => $comment,
+                ':authorId' => $userId,
+            ]);
+            $successMessage = "Comment added successfully!";
+            
+            // Redirect to prevent form resubmission
+            header("Location: friendPictures.php?album=" . urlencode($_GET['album']) . "&picture=" . urlencode($pictureId));
+            exit;
+        } catch (Exception $e) {
+            $errorMessage = "Error adding comment: " . $e->getMessage();
+        }
+    }
+}
+
+// Fetch comments for the selected picture
+if ($selectedPicture) {
+    try {
+        $stmt = $pdo->prepare("SELECT Comment_Text FROM cst8257project.comment WHERE Picture_Id = :pictureId");
+        $stmt->bindParam(':pictureId', $selectedPicture['Picture_Id'], PDO::PARAM_INT);
+        $stmt->execute();
+        $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $errorMessage = "Error fetching comments: " . $e->getMessage();
+    }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['selectedAlbum'])) {
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/global.css' ?>" />
-    <title>Albums for Friend</title>
+    <title>My Pictures</title>
     <style>
         body {
             background-color: #f8f9fa;
@@ -55,30 +120,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['selectedAlbum'])) {
     <?php include("../common/header.php"); ?>
 
     <div class="container">
-        <!-- Display Error Message if friendId is not provided -->
+        <h1 class="text-center my-4">My Friend Pictures</h1>
+
+        <!-- Display Success and Error Messages -->
+        <?php if ($successMessage): ?>
+            <div class="alert alert-success"><?= htmlspecialchars($successMessage) ?></div>
+        <?php endif; ?>
         <?php if ($errorMessage): ?>
             <div class="alert alert-danger"><?= htmlspecialchars($errorMessage) ?></div>
-        <?php else: ?>
-            <h1>Albums for Friend ID: <?= htmlspecialchars($friendId) ?></h1>
+        <?php endif; ?>
 
-            <!-- Display the Albums as a Dropdown -->
-            <?php if (!empty($albums)): ?>
-                <form method="POST" action="">
-                    <div class="mb-4">
-                        <label for="albumSelect" class="form-label">Select an Album:</label>
-                        <select id="albumSelect" name="selectedAlbum" class="form-select" required>
-                            <option value="">-- Choose an album --</option>
-                            <?php foreach ($albums as $album): ?>
-                                <option value="<?= htmlspecialchars($album['AlbumId']) ?>"><?= htmlspecialchars($album['AlbumName']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">View Album</button>
-                </form>
-            <?php else: ?>
-                <p class="text-center text-muted">No albums found for this friend.</p>
-            <?php endif; ?>
+        <!-- Album Selection -->
+        <form method="GET" action="friendPictures.php" class="mb-4">
+            <div class="mb-3">
+                <label for="album" class="form-label">Select an Album</label>
+                <select id="album" name="album" class="form-select" onchange="this.form.submit()" required>
+                    <option value="">Choose an album</option>
+                    <?php foreach ($albums as $album): ?>
+                        <option value="<?= htmlspecialchars($album['AlbumId']) ?>" <?= isset($_GET['album']) && $_GET['album'] == $album['AlbumId'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($album['AlbumName']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </form>
+
+        <!-- Carousel -->
+        <?php if (!empty($pictures)): ?>
+            <div id="pictureCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <?php foreach ($pictures as $index => $picture): ?>
+                        <button type="button" data-bs-target="#pictureCarousel" data-bs-slide-to="<?= $index ?>" <?= $index === 0 ? 'class="active" aria-current="true"' : '' ?> aria-label="Slide <?= $index + 1 ?>"></button>
+                    <?php endforeach; ?>
+                </div>
+                <div class="carousel-inner">
+                    <?php foreach ($pictures as $index => $picture): ?>
+                        <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                            <img src="uploads/<?= htmlspecialchars($albumId) ?>/<?= htmlspecialchars($picture['File_Name']) ?>" 
+                                 class="d-block w-100" 
+                                 alt="<?= htmlspecialchars($picture['Title']) ?>">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5><?= htmlspecialchars($picture['Title']) ?></h5>
+                                <p><?= htmlspecialchars($picture['Description'] ?? 'No description available') ?></p>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        <?php else: ?>
+            <p class="text-center text-muted">No pictures found in this album.</p>
+        <?php endif; ?>
+
+        <!-- Comments Section -->
+        <?php if ($selectedPicture): ?>
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h5>Comments</h5>
+                    <ul class="list-group mb-3">
+                        <?php foreach ($comments as $comment): ?>
+                            <li class="list-group-item"><?= htmlspecialchars($comment['Comment_Text']) ?></li>
+                        <?php endforeach; ?>
+                        <?php if (empty($comments)): ?>
+                            <li class="list-group-item">No comments yet.</li>
+                        <?php endif; ?>
+                    </ul>
+                    <form method="POST" action="friendPictures.php?album=<?= htmlspecialchars($_GET['album']) ?>">
+                        <div class="mb-3">
+                            <textarea name="comment" class="form-control" rows="3" placeholder="Write a comment..." required></textarea>
+                        </div>
+                        <input type="hidden" name="pictureId" value="<?= htmlspecialchars($selectedPicture['Picture_Id']) ?>">
+                        <button type="submit" class="btn btn-primary mb-3">Add Comment</button>
+                    </form>
+                </div>
+            </div>
         <?php endif; ?>
     </div>
+
+    <?php include("../common/footer.php"); ?>
+    <script src="../public/js/myPictures.js"></script>
 </body>
 </html>
