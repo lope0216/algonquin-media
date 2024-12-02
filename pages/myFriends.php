@@ -128,6 +128,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             return confirm("Are you sure you want to defriend the selected friends?");
         }
+        function confirmDeny() {
+            const checkboxes = document.querySelectorAll('input[name="friend_ids[]"]:checked');
+            return confirm("Are you sure you want to deny the selected friends?");
+        }
 
     </script>
 </head>
@@ -174,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if (empty($friendRequests)): ?>
         <p>No friend requests found.</p>
     <?php else: ?>
-        <form method="POST" onsubmit="return confirmDenyRequests();">
+        <form method="POST" onsubmit="return confirmDeny();">
             <table class="table">
                 <thead>
                     <tr>
