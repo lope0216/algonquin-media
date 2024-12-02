@@ -1,65 +1,49 @@
 <?php
-require_once '../db/DBconnection.php'; // Include database connection
+require_once '../db/DBconnection.php';
 include_once __DIR__ . '/../common/utils.php';
 
 startSession();
 
 // Redirect to login if user is not logged in
 if (!isLoggedIn()) {
-  unauthorizedAccess();
+    unauthorizedAccess();
 }
 
-$conn = getPDOConnection(); // Assuming this function returns a PDO instance
-
-// Initialize variables
-$user = $_SESSION['UserName'] ?? 'Guest';
-$userId = $_SESSION['UserId'] ?? null;
+$conn = getPDOConnection();
+$user = $_SESSION['UserName'];
+$userId = $_SESSION['UserId'];
 $friends = [];
 $friendRequests = [];
 $errorMessage = '';
 
-// Fetch friends
+// Fetch Friends
 try {
-    // Fetch all accepted friendships where the current user is involved
-    $stmt1 = $conn->prepare("
-        SELECT Friend_RequesteeId AS FriendId 
-        FROM cst8257project.friendship 
-        WHERE Friend_RequesterId = :userId AND Status = 'accepted'
+    $stmt = $conn->prepare("
+        SELECT 
+            CASE 
+                WHEN f.Friend_RequesterId = :userId THEN f.Friend_RequesteeId
+                ELSE f.Friend_RequesterId
+            END AS FriendId,
+            u.Name AS FriendName,
+            COUNT(a.Album_Id) AS SharedAlbums
+        FROM cst8257project.friendship f
+        JOIN cst8257project.user u ON 
+            (u.UserId = f.Friend_RequesterId AND f.Friend_RequesterId != :userId) OR 
+            (u.UserId = f.Friend_RequesteeId AND f.Friend_RequesteeId != :userId)
+        LEFT JOIN cst8257project.album a ON 
+            (a.Owner_Id = f.Friend_RequesterId OR a.Owner_Id = f.Friend_RequesteeId)
+        WHERE 
+            (f.Friend_RequesterId = :userId OR f.Friend_RequesteeId = :userId) AND 
+            f.Status = 'accepted'
+        GROUP BY FriendId, u.Name
     ");
-    $stmt1->execute([':userId' => $userId]);
-    $friends1 = $stmt1->fetchAll(PDO::FETCH_ASSOC);
-
-    $stmt2 = $conn->prepare("
-        SELECT Friend_RequesterId AS FriendId 
-        FROM cst8257project.friendship 
-        WHERE Friend_RequesteeId = :userId AND Status = 'accepted'
-    ");
-    $stmt2->execute([':userId' => $userId]);
-    $friends2 = $stmt2->fetchAll(PDO::FETCH_ASSOC);
-
-    $friends = array_merge($friends1, $friends2);
-
-    // Fetch friend names and shared albums
-    $friendIds = array_column($friends, 'FriendId');
-    if (!empty($friendIds)) {
-        $placeholders = implode(',', array_fill(0, count($friendIds), '?'));
-        $stmt = $conn->prepare("
-            SELECT u.UserId AS FriendId, u.Name AS FriendName, COUNT(a.Album_Id) AS SharedAlbums
-            FROM cst8257project.user u
-            LEFT JOIN cst8257project.album a ON a.Owner_Id = u.UserId
-            WHERE u.UserId IN ($placeholders)
-            GROUP BY u.UserId
-        ");
-        $stmt->execute($friendIds);
-        $friends = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } else {
-        $friends = [];
-    }
+    $stmt->execute([':userId' => $userId]);
+    $friends = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     $errorMessage = "Error fetching friends: " . $e->getMessage();
 }
 
-// Fetch friend requests
+// Fetch Friend Requests
 try {
     $stmt = $conn->prepare("
         SELECT Friend_RequesterId AS RequesterId, u.Name AS RequesterName
@@ -73,11 +57,10 @@ try {
     $errorMessage = "Error fetching friend requests: " . $e->getMessage();
 }
 
-// Handle friendship actions (Accept/Deny/Delete)
+// Handle Actions (Accept/Deny/Delete)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if (isset($_POST['accept_requests'])) {
-            // Accept selected friend requests
             $requesterIds = $_POST['friend_request_ids'] ?? [];
             if (!empty($requesterIds)) {
                 $placeholders = implode(',', array_fill(0, count($requesterIds), '?'));
@@ -89,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute(array_merge([$userId], $requesterIds));
             }
         } elseif (isset($_POST['deny_requests'])) {
-            // Deny selected friend requests
             $requesterIds = $_POST['friend_request_ids'] ?? [];
             if (!empty($requesterIds)) {
                 $placeholders = implode(',', array_fill(0, count($requesterIds), '?'));
@@ -100,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute(array_merge([$userId], $requesterIds));
             }
         } elseif (isset($_POST['defriend'])) {
-            // Delete selected friends
             $friendIds = $_POST['friend_ids'] ?? [];
             if (!empty($friendIds)) {
                 $placeholders = implode(',', array_fill(0, count($friendIds), '?'));
@@ -120,6 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 
 
 <!DOCTYPE html>

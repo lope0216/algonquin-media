@@ -5,7 +5,7 @@ include_once __DIR__ . '/../common/utils.php';
 startSession();
 
 if (!isLoggedIn()) {
-  unauthorizedAccess();
+    unauthorizedAccess();
 }
 
 $user = $_SESSION['UserName'];
@@ -27,9 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         try {
             $stmt = $conn->prepare("SELECT UserId FROM `user` WHERE UserId = ?");
             $stmt->execute([$friend_user_id]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $foundUser = $stmt->fetch(PDO::FETCH_ASSOC); // Use a different variable name
 
-            if ($user) {
+            if ($foundUser) {
                 $normalized_current_user_id = strtolower($current_user_id);
                 $normalized_friend_user_id = strtolower($friend_user_id);
 
