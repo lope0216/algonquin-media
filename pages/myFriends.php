@@ -150,13 +150,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($friends as $friend): ?>
-                    <tr>
-                        <td><a href="myPictures.php?friendId=<?= htmlspecialchars($friend['FriendId']) ?>"><?= htmlspecialchars($friend['FriendName']) ?></a></td>
-                        <td><?= htmlspecialchars($friend['SharedAlbums']) ?></td>
-                        <td><input type="checkbox" name="friend_ids[]" value="<?= htmlspecialchars($friend['FriendId']) ?>"></td>
-                    </tr>
-                <?php endforeach; ?>
+            <?php foreach ($friendRequests as $request): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($request['RequesterName']) ?></td>
+                            <td>
+                                <input type="checkbox" name="friend_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>">
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
             </tbody>
         </table>
         <button type="submit" name="defriend" class="btn btn-danger">Defriend Selected</button>
@@ -176,14 +177,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($friendRequests as $request): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($request['RequesterName']) ?></td>
-                            <td>
-                                <input type="checkbox" name="friend_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>">
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
+                <?php foreach ($friendRequests as $request): ?>
+    <tr>
+        <td>
+            <a href="friendPictures.php?userId=<?= htmlspecialchars($request['RequesterId']) ?>">
+                <?= htmlspecialchars($request['RequesterName']) ?>
+            </a>
+        </td>
+        <td>
+            <input type="checkbox" name="friend_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>">
+        </td>
+    </tr>
+<?php endforeach; ?>
+
                 </tbody>
             </table>
             <button type="submit" name="accept_requests" class="btn btn-primary">Accept</button>
