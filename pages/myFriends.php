@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php foreach ($friends as $friend): ?>
                     <tr>
                 <!--Redirect to friendPictures-->
-                        <td><a href="friendPictures.php?friendId=<?= htmlspecialchars($friend['FriendId']) ?>"><?= htmlspecialchars($friend['FriendName']) ?></a></td>
+                        <td><a href="friendPictures.php?friendId=<?= htmlspecialchars($friend['FriendId']) ?>&friendName=<?= htmlspecialchars($friend['FriendName']) ?>"><?= htmlspecialchars($friend['FriendName']) ?></a></td>
                         <td><?= htmlspecialchars($friend['SharedAlbums']) ?></td>
                         <td><input type="checkbox" name="friend_ids[]" value="<?= htmlspecialchars($friend['FriendId']) ?>"></td>
                     </tr>
