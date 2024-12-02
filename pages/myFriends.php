@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <tr>
                     <td><?= htmlspecialchars($request['RequesterName']) ?></td>
                     <td>
-                        <input type="checkbox" name="friend_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>"> Select
+                        <input type="checkbox" name="friend_request_ids[]" value="<?= htmlspecialchars($request['RequesterId']) ?>">
                     </td>
                 </tr>
             <?php endforeach; ?>
