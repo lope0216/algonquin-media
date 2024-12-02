@@ -8,6 +8,10 @@ if (!isLoggedIn()) {
     unauthorizedAccess();
 }
 
+
+//test
+
+
 // Retrieve friendId and friendName from the GET request
 $friendId = isset($_GET['friendId']) ? htmlspecialchars($_GET['friendId']) : null;
 $friendName = isset($_GET['friendName']) ? htmlspecialchars($_GET['friendName']) : null;
