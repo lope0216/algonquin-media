@@ -202,6 +202,8 @@ function getAlbum($pdo, $friendId){
                     <span class="visually-hidden">Next</span>
                 </button>
             </div>
+        <?php else: ?>
+            <p class="text-center text-muted <?= empty($_GET['album']) ? 'd-none' : '' ?>">No pictures found in this album.</p>
         <?php endif; ?>
 
         <!-- Comments Section -->
