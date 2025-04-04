@@ -103,10 +103,14 @@ if ($selectedPicture) {
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/global.css' ?>" />
+      <!-- Google Fonts -->
+      <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <title>My Pictures</title>
     <style>
         body {
-            background-color: #f8f9fa;
+            font-family: 'Lato', sans-serif;
+            background-color: #D4D4D4; /* Light Gray Background */
+            color: #343a40; /* Bootstrap Default Dark Text */
         }
     </style>
 </head>

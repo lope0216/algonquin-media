@@ -24,3 +24,33 @@ html, body {
     text-align: center;
     position: relative;
 }
+
+
+body {
+    font-family: 'Lato', sans-serif;
+    background-color: #f0f0f0; /* Light gray background */
+}
+.card {
+    border-radius: 10px;
+}
+.card-header {
+    background-color: #6c757d; /* Bootstrap secondary color */
+    color: #ffffff;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+}
+.card-header h2 {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+.card-body {
+    font-weight: 300;
+    font-size: 1.1rem;
+}
+.card-body a {
+    font-weight: 700;
+    color: #007bff; /* Bootstrap primary color */
+}
+.card-body a:hover {
+    text-decoration: underline;
+}

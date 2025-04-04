@@ -97,7 +97,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="/../public/css/uploadPictures.css" />
     <link rel="stylesheet" href="/../public/css/global.css" />
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <title>Upload Pictures</title>
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #D4D4D4; /* Light Gray Background */
+            color: #343a40; /* Bootstrap Default Dark Text */
+        }
+    </style>
 </head>
 
 <body class="body-layout">

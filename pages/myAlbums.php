@@ -51,6 +51,13 @@ function isFromSubmit() {
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <title>Algonquin Media</title>
+  <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #D4D4D4; /* Light Gray Background */
+            color: #343a40; /* Bootstrap Default Dark Text */
+        }
+    </style>
 </head>
 
 <body class="body-layout">
@@ -67,45 +74,46 @@ function isFromSubmit() {
       <input type="hidden" name="album_id" id="album_id" value="">
       <input type="hidden" name="accessibility" id="accessibility" value="">
       <input type="hidden" name="type" id="submitType" value="">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Number of Pictures</th>
-            <th>Accessibility</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-  
-          <?php foreach ($albums as $album): ?>
+      <table class="table table-striped table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th class="text-center">Title</th>
+            <th class="text-center">Number of Pictures</th>
+            <th class="text-center">Accessibility</th>
+            <th class="text-center">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($albums as $album): ?>
             <tr data-album-id="<?= $album['album_id'] ?>" data-album-title="<?= $album['album_title'] ?>">
-              <td>
-                <a href="myPictures.php?album=<?= $album['album_id'] ?>"><?= $album['album_title'] ?></a>
-              </td>
-              <td><?= $album['num_pictures'] ?></td>
-              <td>
-                <select class="form-select" >
-                  <?php foreach ($accessibilityModes as $mode): ?>
-                    <option value="<?= $mode['code'] ?>" <?= $mode['code'] == $album['accessibility'] ? 'selected' : '' ?>>
-                      <?= $mode['name'] ?>
-                    </option>
-                  <?php endforeach; ?>
-                </select>
-              </td>
-              <td>
-                <button type="submit" class="btn">
-                  <i class="material-icons text-primary save-btn">save</i>
-                </button>
-                <button type="submit" class="btn">
-                  <i class="material-icons text-danger delete-btn">delete</i>
-                </button>
-              </td>
+                <td class="text-center">
+                    <a href="myPictures.php?album=<?= $album['album_id'] ?>" class="text-decoration-none">
+                        <?= htmlspecialchars($album['album_title']) ?>
+                    </a>
+                </td>
+                <td class="text-center"><?= htmlspecialchars($album['num_pictures']) ?></td>
+                <td class="text-center">
+                    <select class="form-select w-auto mx-auto">
+                        <?php foreach ($accessibilityModes as $mode): ?>
+                            <option value="<?= htmlspecialchars($mode['code']) ?>" <?= $mode['code'] == $album['accessibility'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($mode['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+                <td class="text-center">
+                    <button type="submit" class="btn p-0">
+                        <i class="material-icons text-primary save-btn">save</i>
+                    </button>
+                    <button type="submit" class="btn p-0">
+                        <i class="material-icons text-danger delete-btn">delete</i>
+                    </button>
+                </td>
             </tr>
-          <?php endforeach; ?>
-  
-        </tbody>
-      </table>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
     </form>
   </main>
 

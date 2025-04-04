@@ -138,7 +138,9 @@ function getAlbum($pdo, $friendId){
     <title>My Pictures</title>
     <style>
         body {
-            background-color: #f8f9fa;
+            font-family: 'Lato', sans-serif;
+            background-color: #D4D4D4; /* Light Gray Background */
+            color: #343a40; /* Bootstrap Default Dark Text */
         }
     </style>
 </head>

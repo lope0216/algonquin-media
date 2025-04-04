@@ -130,10 +130,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         function confirmDeny() {
             const checkboxes = document.querySelectorAll('input[name="friend_ids[]"]:checked');
-            return confirm("Are you sure you want to deny the selected friends?");
+            return confirm("Are you sure you want to accept the options?");
         }
 
     </script>
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #D4D4D4; /* Light Gray Background */
+            color: #343a40; /* Bootstrap Default Dark Text */
+        }
+    </style>
+    
 </head>
 <body class="body-layout">
 
@@ -151,25 +159,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <p><a href="addFriend.php">Add Friends</a></p>
 
     <form method="POST" onsubmit="return confirmDefriend();">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Shared Albums</th>
-                    <th>Defriend</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($friends as $friend): ?>
-                    <tr>
-                <!--Redirect to friendPictures-->
-                        <td><a href="friendPictures.php?friendId=<?= htmlspecialchars($friend['FriendId']) ?>&friendName=<?= htmlspecialchars($friend['FriendName']) ?>"><?= htmlspecialchars($friend['FriendName']) ?></a></td>
-                        <td><?= htmlspecialchars($friend['SharedAlbums']) ?></td>
-                        <td><input type="checkbox" name="friend_ids[]" value="<?= htmlspecialchars($friend['FriendId']) ?>"></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+    <table class="table table-striped table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th class="text-center">Name</th>
+            <th class="text-center">Shared Albums</th>
+            <th class="text-center">Defriend</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($friends as $friend): ?>
+            <tr>
+                <td class="text-center">
+                    <a href="friendPictures.php?friendId=<?= htmlspecialchars($friend['FriendId']) ?>&friendName=<?= htmlspecialchars($friend['FriendName']) ?>" class="text-decoration-none">
+                        <?= htmlspecialchars($friend['FriendName']) ?>
+                    </a>
+                </td>
+                <td class="text-center"><?= htmlspecialchars($friend['SharedAlbums']) ?></td>
+                <td class="text-center">
+                    <input type="checkbox" name="friend_ids[]" value="<?= htmlspecialchars($friend['FriendId']) ?>" class="form-check-input">
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
         <button type="submit" name="defriend" class="btn btn-danger">Defriend Selected</button>
     </form>
 

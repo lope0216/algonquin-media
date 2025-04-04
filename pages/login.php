@@ -14,38 +14,35 @@ if (isLoggedIn()) {
 $conn = getPDOConnection();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $userId = trim($_POST['UserId'] ?? '');
-    $userPassword = trim($_POST['password'] ?? '');
-    
-    // Validate UserId and password fields
+    $userId = $_POST['UserId'] ?? '';
+    $userPassword = $_POST['password'] ?? '';
+
     if (empty($userId)) {
         $userIdError = "Please enter your User ID.";
     }
     if (empty($userPassword)) {
         $passwordError = "Please enter your password.";
     }
-    
+
     if (empty($userIdError) && empty($passwordError)) {
-        // Proceed with authentication
-        $sql = $conn->prepare("SELECT * FROM User WHERE UserId = :userId");
-        $sql->bindParam(':userId', $userId, PDO::PARAM_STR);
-        $sql->execute();
-        $User = $sql->fetch(PDO::FETCH_ASSOC);
-        
+        // 🔓 Vulnerable SQL statement (NO prepared statement)
+        $sql = "SELECT * FROM User WHERE UserId = '$userId' AND Password = '$userPassword'";
+        echo "DEBUG SQL: $sql<br>"; // 💡 Print for confirmation
+
+        $result = $conn->query($sql);
+        $User = $result->fetch(PDO::FETCH_ASSOC);
+
         if ($User) {
-            if (password_verify($userPassword, $User['Password'])) {
-                $_SESSION['UserId'] = $User['UserId'];
-                $_SESSION['UserName'] = $User['Name'];
-                header("Location: addAlbum.php");
-                exit();
-            } else {
-                $errorMessage = "Invalid User ID or password!";
-            }
+            $_SESSION['UserId'] = $User['UserId'];
+            $_SESSION['UserName'] = $User['Name'];
+            header("Location: addAlbum.php");
+            exit();
         } else {
-            $errorMessage = "User not found!";
+            $errorMessage = "Invalid login!";
         }
     }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -55,6 +52,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Login - Online Course Registration</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/../public/css/login.css">
+      <!-- Google Fonts -->
+      <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #D4D4D4; /* Light Gray Background */
+            color: #343a40; /* Bootstrap Default Dark Text */
+        }
+    </style>
 </head>
 <body>
     <?php include(dirname(__FILE__) . "/../common/header.php"); ?>
