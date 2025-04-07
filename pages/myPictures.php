@@ -58,7 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET['album'])) {
 
 // Handle comment submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['comment']) && !empty($_POST['pictureId'])) {
-    $comment = htmlspecialchars($_POST['comment']);
+    // $comment = htmlspecialchars($_POST['comment']);
+    $comment = $_POST['comment'];
     $pictureId = htmlspecialchars($_POST['pictureId']);
 
     try {
@@ -190,7 +191,8 @@ if ($selectedPicture) {
                             <li class="list-group-item">
                                 <div class="ms-2 me-auto">
                                     <div class="fw-bold"><?= htmlspecialchars($comment['UserName']) ?></div>
-                                    <?= htmlspecialchars($comment['Comment_Text']) ?>
+                                    <!-- <?= htmlspecialchars($comment['Comment_Text']) ?> -->
+                                    <?= $comment['Comment_Text'] ?>
                                 </div>
                             </li>
                         <?php endforeach; ?>

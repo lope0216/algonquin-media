@@ -1,11 +1,13 @@
 <?php
 include_once('../db/DBconnection.php');
+// include_once __DIR__ . '/../model/login.php';
 include_once __DIR__ . '/../common/utils.php';
 
 startSession();
 $errorMessage = "";
 $userIdError = "";
 $passwordError = "";
+$loginModel = new LoginModel();
 
 if (isLoggedIn()) {
     redirectToHome();
@@ -27,21 +29,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     if (empty($userIdError) && empty($passwordError)) {
         // Proceed with authentication
-        $sql = $conn->prepare("SELECT * FROM User WHERE UserId = :userId");
-        $sql->bindParam(':userId', $userId, PDO::PARAM_STR);
-        $sql->execute();
-        $User = $sql->fetch(PDO::FETCH_ASSOC);
+        // $sql = $conn->prepare("SELECT * FROM User WHERE UserId = :userId");
+        // $sql->bindParam(':userId', $userId, PDO::PARAM_STR);
+        // $sql->execute();
+        // $User = $sql->fetch(PDO::FETCH_ASSOC);
+
+        // User: hacked
+        // Password: ' OR 1=1 limit 1; -- '
+        $sql = "SELECT * FROM User WHERE UserId = '" . $userId . "' AND Password = '" . $userPassword . "';";
+        echo $sql;
+        $result = $conn->query($sql);
+        $User = $result->fetch(PDO::FETCH_ASSOC);
+        $result->closeCursor();
         
         if ($User) {
-            if (password_verify($userPassword, $User['Password'])) {
+            // if (password_verify($userPassword, $User['Password'])) {
                 $_SESSION['UserId'] = $User['UserId'];
                 $_SESSION['UserName'] = $User['Name'];
+                // $loginModel->insertLoginAudit($User['UserId'], true);
                 header("Location: addAlbum.php");
                 exit();
-            } else {
-                $errorMessage = "Invalid User ID or password!";
-            }
+            // } else {
+            //     $loginModel->insertLoginAudit($User['UserId'], false);
+            //     $errorMessage = "Invalid User ID or password!";
+            // }
         } else {
+            // $loginModel->insertLoginAudit($User['UserId'], false);
             $errorMessage = "User not found!";
         }
     }
