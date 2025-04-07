@@ -7,7 +7,7 @@ startSession();
 $errorMessage = "";
 $userIdError = "";
 $passwordError = "";
-$loginModel = new LoginModel();
+//$loginModel = new LoginModel();
 
 if (isLoggedIn()) {
     redirectToHome();
