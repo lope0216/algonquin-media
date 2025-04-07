@@ -133,6 +133,8 @@ function getAlbum($pdo, $friendId){
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
+    <!-- Content Security Policy to prevent XSS -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= dirname($_SERVER['PHP_SELF']) . '/../public/css/global.css' ?>" />
     <title>My Pictures</title>
